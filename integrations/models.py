@@ -5,6 +5,53 @@ User = get_user_model()
 
 
 # ─────────────────────────────────────────────
+# 5.x  INTEGRATION CONFIGURATION  (DB-stored)
+# ─────────────────────────────────────────────
+
+class IntegrationConfig(models.Model):
+    """Singleton-style table (only one row used) for admin-configurable integration settings."""
+
+    # Azure AD / Entra ID
+    azure_client_id     = models.CharField(max_length=200, blank=True)
+    azure_client_secret = models.CharField(max_length=200, blank=True)
+    azure_tenant_id     = models.CharField(max_length=200, blank=True)
+    azure_redirect_uri  = models.CharField(max_length=500, blank=True)
+    # JSON-encoded role map: {"<group-id>": "admin", ...}
+    azure_role_map_json = models.TextField(blank=True, default='{}')
+
+    # Email
+    email_host          = models.CharField(max_length=200, blank=True, default='smtp.gmail.com')
+    email_port          = models.PositiveIntegerField(default=587)
+    email_host_user     = models.CharField(max_length=200, blank=True)
+    email_host_password = models.CharField(max_length=200, blank=True)
+    email_use_tls       = models.BooleanField(default=True)
+    default_from_email  = models.CharField(max_length=200, blank=True, default='goaltrack@yourorg.com')
+
+    # Microsoft Teams
+    teams_webhook_url   = models.URLField(max_length=1000, blank=True)
+
+    # Site
+    site_base_url       = models.CharField(max_length=500, blank=True, default='http://127.0.0.1:8000')
+
+    updated_at          = models.DateTimeField(auto_now=True)
+    updated_by          = models.ForeignKey(
+        User, null=True, blank=True, on_delete=models.SET_NULL, related_name='+'
+    )
+
+    class Meta:
+        verbose_name = 'Integration Configuration'
+
+    def __str__(self):
+        return f'Integration Config (updated {self.updated_at:%Y-%m-%d %H:%M})'
+
+    @classmethod
+    def get(cls):
+        """Always returns the single config row, creating it if absent."""
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+
+# ─────────────────────────────────────────────
 # 5.3  ESCALATION MODULE
 # ─────────────────────────────────────────────
 

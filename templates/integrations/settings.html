@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+{% block title %}Integration Settings — GoalTrack{% endblock %}
+
+{% block extra_css %}
+<style>
+.int-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem; }
+.int-section {
+  background: var(--bg-card);
+  border: var(--border-sketch);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sketch);
+  overflow: hidden;
+}
+.int-section-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 1rem 1.5rem;
+  border-bottom: var(--border-light);
+  background: var(--bg-secondary);
+}
+.int-section-header h3 { font-size: 1.4rem; margin: 0; }
+.int-section-icon {
+  width: 36px; height: 36px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.icon-azure  { background: #0078d4; color: #fff; }
+.icon-email  { background: var(--success); color: #fff; }
+.icon-teams  { background: #6264a7; color: #fff; }
+.icon-site   { background: var(--accent); color: #fff; }
+.int-section-body { padding: 1.5rem; }
+.int-section-body .form-group { margin-bottom: 1rem; }
+.int-section-body label {
+  display: block; font-size: 0.78rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--text-muted); margin-bottom: 0.3rem;
+  font-family: 'Inter', sans-serif;
+}
+.int-section-body .form-control { font-size: 0.88rem; padding: 0.55rem 0.9rem; }
+.status-dot {
+  width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px;
+}
+.dot-ok  { background: var(--success); }
+.dot-off { background: var(--text-muted); }
+.cfg-meta {
+  font-size: 0.78rem; color: var(--text-muted);
+  padding: 0.6rem 1.5rem;
+  border-top: var(--border-light);
+}
+.toggle-row { display: flex; align-items: center; gap: 0.8rem; }
+.toggle-row input[type=checkbox] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent); }
+@media (max-width: 900px) { .int-grid { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container" style="max-width: 1100px;">
+  <div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem;">
+    <div>
+      <h1>Integration Settings</h1>
+      <p class="page-subtitle">Configure Azure AD SSO, Email, Microsoft Teams, and site-wide settings.</p>
+    </div>
+    <a href="{% url 'integrations:terminal' %}" class="btn btn-outline btn-sm" style="display:flex;align-items:center;gap:6px;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+      Command Terminal
+    </a>
+  </div>
+
+  {% if cfg.updated_at %}
+  <div style="font-size:0.82rem; color:var(--text-muted); margin-bottom:1.5rem;">
+    Last saved: {{ cfg.updated_at|date:"d M Y, H:i" }}{% if cfg.updated_by %} by {{ cfg.updated_by.get_full_name|default:cfg.updated_by.username }}{% endif %}
+  </div>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="int-grid">
+
+      <!-- Azure AD -->
+      <div class="int-section">
+        <div class="int-section-header">
+          <div class="int-section-icon icon-azure">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M11.5 2L2 19h7l2.5-4.5L14 19h8L11.5 2zm0 4.2l4.8 8.8H13l-1.5-2.7-1.5 2.7H7.7l3.8-8.8z"/></svg>
+          </div>
+          <div>
+            <h3>Microsoft Entra ID (Azure AD)</h3>
+            <span style="font-size:0.78rem; color:var(--text-muted);">Single Sign-On &amp; org hierarchy sync</span>
+          </div>
+          <span style="margin-left:auto; font-size:0.78rem;">
+            <span class="status-dot {% if cfg.azure_client_id %}dot-ok{% else %}dot-off{% endif %}"></span>
+            {% if cfg.azure_client_id %}Configured{% else %}Not set{% endif %}
+          </span>
+        </div>
+        <div class="int-section-body">
+          <div class="form-group">
+            <label>Client ID (Application ID)</label>
+            <input class="form-control" name="azure_client_id" value="{{ cfg.azure_client_id }}" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+          </div>
+          <div class="form-group">
+            <label>Client Secret</label>
+            <input class="form-control" type="password" name="azure_client_secret" value="{{ cfg.azure_client_secret }}" placeholder="Leave blank to keep existing">
+          </div>
+          <div class="form-group">
+            <label>Tenant ID (Directory ID)</label>
+            <input class="form-control" name="azure_tenant_id" value="{{ cfg.azure_tenant_id }}" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+          </div>
+          <div class="form-group">
+            <label>Redirect URI (Callback URL)</label>
+            <input class="form-control" name="azure_redirect_uri" value="{{ cfg.azure_redirect_uri }}" placeholder="https://your-domain.com/integrations/azure/callback/">
+          </div>
+          <div class="form-group">
+            <label>Role Map (JSON) — group-id → admin/manager/employee</label>
+            <textarea class="form-control" name="azure_role_map_json" rows="4" placeholder='{"<admin-group-id>": "admin", "<manager-group-id>": "manager"}'>{{ cfg.azure_role_map_json }}</textarea>
+          </div>
+          <div style="margin-top:0.5rem;">
+            <a href="{% url 'integrations:azure_login' %}" class="btn btn-outline btn-sm" target="_blank">
+              Test SSO Login →
+            </a>
+          </div>
+        </div>
+        <div class="cfg-meta">Login URL: <code>/integrations/azure/login/</code> &nbsp;·&nbsp; Callback: <code>/integrations/azure/callback/</code></div>
+      </div>
+
+      <!-- Email -->
+      <div class="int-section">
+        <div class="int-section-header">
+          <div class="int-section-icon icon-email">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </div>
+          <div>
+            <h3>Email Notifications</h3>
+            <span style="font-size:0.78rem; color:var(--text-muted);">SMTP for goal events &amp; escalations</span>
+          </div>
+          <span style="margin-left:auto; font-size:0.78rem;">
+            <span class="status-dot {% if cfg.email_host_user %}dot-ok{% else %}dot-off{% endif %}"></span>
+            {% if cfg.email_host_user %}Configured{% else %}Not set{% endif %}
+          </span>
+        </div>
+        <div class="int-section-body">
+          <div class="form-row" style="display:grid; grid-template-columns:1fr auto; gap:1rem;">
+            <div class="form-group">
+              <label>SMTP Host</label>
+              <input class="form-control" name="email_host" value="{{ cfg.email_host }}" placeholder="smtp.gmail.com">
+            </div>
+            <div class="form-group">
+              <label>Port</label>
+              <input class="form-control" type="number" name="email_port" value="{{ cfg.email_port }}" style="width:90px;">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Username / Email</label>
+            <input class="form-control" name="email_host_user" value="{{ cfg.email_host_user }}" placeholder="you@gmail.com">
+          </div>
+          <div class="form-group">
+            <label>Password / App Password</label>
+            <input class="form-control" type="password" name="email_host_password" placeholder="Leave blank to keep existing">
+          </div>
+          <div class="form-group">
+            <label>Default From Email</label>
+            <input class="form-control" name="default_from_email" value="{{ cfg.default_from_email }}" placeholder="goaltrack@yourorg.com">
+          </div>
+          <div class="form-group toggle-row">
+            <input type="checkbox" id="email_use_tls" name="email_use_tls" {% if cfg.email_use_tls %}checked{% endif %}>
+            <label for="email_use_tls" style="text-transform:none; font-size:0.88rem; font-family:'Inter',sans-serif; color:var(--text-primary); margin:0;">Use TLS (recommended)</label>
+          </div>
+        </div>
+        <div class="cfg-meta">Triggers: goal submission, approval, return, check-in reminders, escalations</div>
+      </div>
+
+      <!-- Teams -->
+      <div class="int-section">
+        <div class="int-section-header">
+          <div class="int-section-icon icon-teams">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zm-7-1a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm7 2c-1.1 0-2.1.4-2.9 1H14a5 5 0 0 0-5 5v1h10v-1a5 5 0 0 0-2.5-4.4c.3-.1.6-.1 1-.1 1.9 0 3.5 1.3 3.9 3H23v-1a4 4 0 0 0-3.5-3.5zM9 15a4 4 0 0 1 8 0v1H9v-1z"/></svg>
+          </div>
+          <div>
+            <h3>Microsoft Teams</h3>
+            <span style="font-size:0.78rem; color:var(--text-muted);">Adaptive card notifications via webhook</span>
+          </div>
+          <span style="margin-left:auto; font-size:0.78rem;">
+            <span class="status-dot {% if cfg.teams_webhook_url %}dot-ok{% else %}dot-off{% endif %}"></span>
+            {% if cfg.teams_webhook_url %}Configured{% else %}Not set{% endif %}
+          </span>
+        </div>
+        <div class="int-section-body">
+          <div class="form-group">
+            <label>Incoming Webhook URL</label>
+            <input class="form-control" name="teams_webhook_url" value="{{ cfg.teams_webhook_url }}" placeholder="https://outlook.office.com/webhook/...">
+          </div>
+          <p style="font-size:0.82rem; color:var(--text-muted); margin-top:0.5rem;">
+            Create an Incoming Webhook connector in your Teams channel and paste the URL above.
+            Notifications include deep-links back to the relevant goal sheet.
+          </p>
+        </div>
+        <div class="cfg-meta">Triggers: submission, approval, return — with direct deep-link buttons</div>
+      </div>
+
+      <!-- Site -->
+      <div class="int-section">
+        <div class="int-section-header">
+          <div class="int-section-icon icon-site">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          </div>
+          <div>
+            <h3>Site Configuration</h3>
+            <span style="font-size:0.78rem; color:var(--text-muted);">Base URL for deep-links in notifications</span>
+          </div>
+        </div>
+        <div class="int-section-body">
+          <div class="form-group">
+            <label>Site Base URL</label>
+            <input class="form-control" name="site_base_url" value="{{ cfg.site_base_url }}" placeholder="https://your-domain.com">
+          </div>
+          <p style="font-size:0.82rem; color:var(--text-muted); margin-top:0.5rem;">
+            Used to generate absolute deep-links in email and Teams notifications.
+            For local dev: <code>http://127.0.0.1:8000</code>
+          </p>
+        </div>
+        <div class="cfg-meta">Used by: Email notifications, Teams Adaptive Cards, Escalation alerts</div>
+      </div>
+
+    </div><!-- /.int-grid -->
+
+    <div style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
+      <button type="submit" class="btn btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Save All Settings
+      </button>
+      <a href="{% url 'portal:dashboard' %}" class="btn btn-outline">Back to Admin</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
