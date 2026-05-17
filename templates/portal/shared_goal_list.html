@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Shared Goals | GoalTrack{% endblock %}
+{% block content %}
+<div class="page-container">
+  <div class="page-header">
+    <h1>Shared / Departmental Goals</h1>
+    <p class="page-subtitle">KPIs pushed to employees by Admin or Managers.</p>
+  </div>
+  <div style="margin-bottom: 1.5rem;">
+    <a href="{% url 'portal:shared_goal_push' %}" class="btn btn-primary">+ Push New Shared Goal</a>
+  </div>
+  <table class="table-sketch">
+    <thead>
+      <tr><th>Title</th><th>Department</th><th>Cycle</th><th>UoM</th><th>Target</th><th>Pushed By</th><th>Recipients</th></tr>
+    </thead>
+    <tbody>
+      {% for t in templates %}
+      <tr>
+        <td><strong>{{ t.title }}</strong><div style="font-size: 0.8rem; color: var(--text-secondary);">{{ t.thrust_area.name }}</div></td>
+        <td>{{ t.department.name }}</td>
+        <td>{{ t.cycle.name }}</td>
+        <td>{{ t.get_uom_display }}</td>
+        <td>{{ t.target|default:t.target_date|default:"Zero" }}</td>
+        <td>{{ t.pushed_by.get_full_name|default:t.pushed_by.username }}</td>
+        <td>{{ t.derived_goals.count }} employees</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7" style="text-align:center; color: var(--text-muted);">No shared goals pushed yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

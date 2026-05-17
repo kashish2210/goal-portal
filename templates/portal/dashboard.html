@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% block title %}Admin Portal | GoalTrack{% endblock %}
+{% block content %}
+<div class="dashboard">
+  <div class="dash-welcome">
+    <h1>Admin / HR Portal</h1>
+    <p>Welcome, {{ request.user.get_full_name|default:request.user.username }}. Here is your organization overview.</p>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="card-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 2rem;">
+    <div class="trip-card" style="cursor: default;">
+      <div class="card-body" style="text-align: center;">
+        <div style="font-size: 2.5rem; font-family: 'Caveat', cursive; color: var(--accent);">{{ total_users }}</div>
+        <p>Employees</p>
+      </div>
+    </div>
+    <div class="trip-card" style="cursor: default;">
+      <div class="card-body" style="text-align: center;">
+        <div style="font-size: 2.5rem; font-family: 'Caveat', cursive; color: var(--success);">{{ approved }}</div>
+        <p>Approved Sheets</p>
+      </div>
+    </div>
+    <div class="trip-card" style="cursor: default;">
+      <div class="card-body" style="text-align: center;">
+        <div style="font-size: 2.5rem; font-family: 'Caveat', cursive; color: var(--warning);">{{ pending }}</div>
+        <p>Pending Approval</p>
+      </div>
+    </div>
+    <div class="trip-card" style="cursor: default;">
+      <div class="card-body" style="text-align: center;">
+        <div style="font-size: 2.5rem; font-family: 'Caveat', cursive; color: var(--text-primary);">{{ total_sheets }}</div>
+        <p>Total Sheets</p>
+      </div>
+    </div>
+  </div>
+
+  {% if active_cycle %}
+  <div style="padding: 1rem 1.5rem; background: var(--accent-light); border: var(--border-sketch); border-radius: 10px; margin-bottom: 2rem;">
+    <strong>Active Cycle:</strong> {{ active_cycle.name }} · {{ active_cycle.get_phase_display }}
+    <span style="margin-left: 1rem; font-size: 0.85rem; color: var(--text-secondary);">{{ active_cycle.start_date }} → {{ active_cycle.end_date }}</span>
+  </div>
+  {% endif %}
+
+  <!-- Quick Actions -->
+  <div class="section-header"><h2>Quick Actions</h2><div class="line"></div></div>
+  <div class="card-grid">
+    <div class="trip-card" onclick="window.location.href='{% url 'portal:cycle_list' %}'">
+      <div class="card-body">
+        <h4>🗓️ Goal Cycles</h4>
+        <p>Create & manage quarterly phases</p>
+      </div>
+    </div>
+    <div class="trip-card" onclick="window.location.href='{% url 'portal:all_sheets' %}'">
+      <div class="card-body">
+        <h4>📋 All Goal Sheets</h4>
+        <p>View, filter & unlock sheets</p>
+      </div>
+    </div>
+    <div class="trip-card" onclick="window.location.href='{% url 'portal:shared_goal_push' %}'">
+      <div class="card-body">
+        <h4>📤 Push Shared Goals</h4>
+        <p>Deploy KPIs to departments</p>
+      </div>
+    </div>
+    <div class="trip-card" onclick="window.location.href='{% url 'portal:user_list' %}'">
+      <div class="card-body">
+        <h4>👥 Manage Users</h4>
+        <p>Edit roles & org hierarchy</p>
+      </div>
+    </div>
+    <div class="trip-card" onclick="window.location.href='{% url 'portal:audit_log' %}'">
+      <div class="card-body">
+        <h4>🔍 Audit Log</h4>
+        <p>Track all changes post-lock</p>
+      </div>
+    </div>
+    <div class="trip-card" onclick="window.location.href='{% url 'reports:achievement' %}'">
+      <div class="card-body">
+        <h4>📊 Reports</h4>
+        <p>Export achievement data</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Audit Activity -->
+  <div class="section-header" style="margin-top: 2rem;"><h2>Recent Activity</h2><div class="line"></div></div>
+  <table class="table-sketch">
+    <thead>
+      <tr><th>Time</th><th>User</th><th>Action</th><th>Details</th></tr>
+    </thead>
+    <tbody>
+      {% for log in recent_logs %}
+      <tr>
+        <td style="font-size: 0.85rem; color: var(--text-muted);">{{ log.timestamp|timesince }} ago</td>
+        <td>{{ log.user.username|default:"System" }}</td>
+        <td>{{ log.get_action_display }}</td>
+        <td style="font-size: 0.85rem; color: var(--text-secondary);">
+          {% if log.goal_sheet %}{{ log.goal_sheet.employee.get_full_name }}{% endif %}
+          {% if log.extra_notes %} — {{ log.extra_notes|truncatechars:60 }}{% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4" style="text-align:center; color: var(--text-muted);">No activity yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

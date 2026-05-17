@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}Check-in List | GoalTrack{% endblock %}
+{% block content %}
+<div class="page-container">
+  <div class="page-header">
+    <h1>Quarterly Check-ins</h1>
+    <p class="page-subtitle">Track your team's quarterly progress discussions.</p>
+  </div>
+
+  {% for item in data %}
+  <div class="itinerary-section" style="margin-bottom: 2rem;">
+    <div class="itinerary-section-header">
+      <h3>{{ item.cycle.name }}</h3>
+      <span style="font-size: 0.85rem; color: var(--text-secondary);">{{ item.cycle.get_phase_display }}</span>
+    </div>
+    <table class="table-sketch">
+      <thead>
+        <tr><th>Employee</th><th>Sheet Status</th><th>Check-in</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for e in item.entries %}
+        <tr>
+          <td>
+            <strong>{{ e.employee.get_full_name|default:e.employee.username }}</strong>
+            <div style="font-size: 0.8rem; color: var(--text-muted);">{{ e.employee.department.name|default:"—" }}</div>
+          </td>
+          <td>
+            {% if e.sheet %}
+              {{ e.sheet.get_status_display }}
+            {% else %}<span style="color: var(--text-muted);">No sheet</span>{% endif %}
+          </td>
+          <td>
+            {% if e.checkin %}
+              {% if e.checkin.is_complete %}
+                <span style="color: var(--success); font-weight: 600;">✓ Complete</span>
+              {% else %}
+                <span style="color: var(--warning);">In Progress</span>
+              {% endif %}
+            {% else %}
+              <span style="color: var(--text-muted);">Not started</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="{% url 'manager:check_in' e.employee.pk item.cycle.pk %}" class="btn btn-outline btn-sm">
+              {% if e.checkin %}Update{% else %}Start{% endif %} Check-in
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% empty %}
+  <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+    <p>No team members or cycles found.</p>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

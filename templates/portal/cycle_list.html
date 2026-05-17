@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}Goal Cycles | GoalTrack{% endblock %}
+{% block content %}
+<div class="page-container">
+  <div class="page-header">
+    <h1>Goal Cycles</h1>
+    <p class="page-subtitle">Manage quarterly phases for the organization.</p>
+  </div>
+  <div style="margin-bottom: 1.5rem;">
+    <a href="{% url 'portal:cycle_create' %}" class="btn btn-primary">+ Create New Cycle</a>
+  </div>
+  <table class="table-sketch">
+    <thead>
+      <tr><th>Name</th><th>Phase</th><th>Fiscal Year</th><th>Window</th><th>Status</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      {% for cycle in cycles %}
+      <tr>
+        <td><strong>{{ cycle.name }}</strong></td>
+        <td>{{ cycle.get_phase_display }}</td>
+        <td>{{ cycle.fiscal_year }}</td>
+        <td style="font-size: 0.85rem;">{{ cycle.start_date }} → {{ cycle.end_date }}</td>
+        <td>
+          {% if cycle.is_active %}
+            <span style="color: var(--success); font-weight: 600;">● Active</span>
+          {% else %}
+            <span style="color: var(--text-muted);">○ Inactive</span>
+          {% endif %}
+        </td>
+        <td>
+          <a href="{% url 'portal:cycle_edit' cycle.pk %}" class="btn btn-outline btn-sm">Edit</a>
+          <form method="post" action="{% url 'portal:cycle_toggle' cycle.pk %}" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-ghost btn-sm">
+              {% if cycle.is_active %}Deactivate{% else %}Activate{% endif %}
+            </button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" style="text-align:center; color: var(--text-muted);">No cycles yet. Create one above.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}{{ action }} Cycle | GoalTrack{% endblock %}
+{% block content %}
+<div class="page-container">
+  <div class="page-header">
+    <h1>{{ action }} Goal Cycle</h1>
+  </div>
+  <div class="create-trip-form-card">
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-row">
+        <div class="form-group">
+          <label for="name">Cycle Name</label>
+          <input type="text" name="name" id="name" class="form-control" value="{{ cycle.name|default:post.name|default:'' }}" placeholder="e.g. FY25-26 Phase 1" required>
+        </div>
+        <div class="form-group">
+          <label for="fiscal_year">Fiscal Year</label>
+          <input type="text" name="fiscal_year" id="fiscal_year" class="form-control" value="{{ cycle.fiscal_year|default:post.fiscal_year|default:'' }}" placeholder="e.g. 25-26" required>
+        </div>
+        <div class="form-group">
+          <label for="phase">Phase</label>
+          <select name="phase" id="phase" class="form-control" required>
+            <option value="">Select Phase</option>
+            <option value="goal_setting" {% if cycle.phase == 'goal_setting' %}selected{% endif %}>Phase 1 — Goal Setting</option>
+            <option value="q1" {% if cycle.phase == 'q1' %}selected{% endif %}>Q1 Check-in (July)</option>
+            <option value="q2" {% if cycle.phase == 'q2' %}selected{% endif %}>Q2 Check-in (October)</option>
+            <option value="q3" {% if cycle.phase == 'q3' %}selected{% endif %}>Q3 Check-in (January)</option>
+            <option value="q4" {% if cycle.phase == 'q4' %}selected{% endif %}>Q4 / Annual (March-April)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="start_date">Start Date</label>
+          <input type="date" name="start_date" id="start_date" class="form-control" value="{{ cycle.start_date|date:'Y-m-d'|default:'' }}" required>
+        </div>
+        <div class="form-group">
+          <label for="end_date">End Date</label>
+          <input type="date" name="end_date" id="end_date" class="form-control" value="{{ cycle.end_date|date:'Y-m-d'|default:'' }}" required>
+        </div>
+        <div class="form-group" style="display: flex; align-items: center; padding-top: 1.5rem;">
+          <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+            <input type="checkbox" name="is_active" {% if cycle.is_active %}checked{% endif %}> Set as Active Cycle
+          </label>
+        </div>
+      </div>
+      <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+        <button type="submit" class="btn btn-primary">{{ action }} Cycle</button>
+        <a href="{% url 'portal:cycle_list' %}" class="btn btn-ghost">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

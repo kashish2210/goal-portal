@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% block title %}Team Dashboard | GoalTrack{% endblock %}
+{% block content %}
+<div class="dashboard">
+  <div class="dash-welcome">
+    <h1>Team Dashboard</h1>
+    <p>Welcome back, {{ request.user.first_name|default:request.user.username }}. You have <strong>{{ pending }}</strong> sheet(s) pending approval.</p>
+  </div>
+
+  {% if active_cycle %}
+  <div style="padding: 1rem 1.5rem; background: var(--accent-light); border: var(--border-sketch); border-radius: 10px; margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between;">
+    <div>
+      <strong>Active Cycle:</strong> {{ active_cycle.name }}
+      <span style="margin-left: 1rem; font-size: 0.85rem; color: var(--text-secondary);">{{ active_cycle.get_phase_display }} · {{ active_cycle.start_date }} → {{ active_cycle.end_date }}</span>
+    </div>
+    {% if pending > 0 %}
+    <a href="{% url 'goals:manager_sheet_list' %}" class="btn btn-primary btn-sm">Review {{ pending }} Pending</a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <div class="section-header">
+    <h2>My Team</h2>
+    <div class="line"></div>
+  </div>
+
+  <table class="table-sketch">
+    <thead>
+      <tr>
+        <th>Employee</th>
+        <th>Department</th>
+        <th>Sheet Status</th>
+        <th>Goals</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for td in team_data %}
+      <tr>
+        <td>
+          <strong>{{ td.employee.get_full_name|default:td.employee.username }}</strong>
+          <div style="font-size: 0.8rem; color: var(--text-muted);">{{ td.employee.email }}</div>
+        </td>
+        <td>{{ td.employee.department.name|default:"—" }}</td>
+        <td>
+          {% if td.sheet %}
+            {% if td.sheet.status == 'submitted' %}
+              <span style="color: var(--warning); font-weight: 600;">⏳ Submitted</span>
+            {% elif td.sheet.status == 'approved' %}
+              <span style="color: var(--success); font-weight: 600;">✓ Approved</span>
+            {% elif td.sheet.status == 'returned' %}
+              <span style="color: var(--danger); font-weight: 600;">↩ Returned</span>
+            {% else %}
+              <span style="color: var(--text-muted);">✎ Draft</span>
+            {% endif %}
+          {% else %}
+            <span style="color: var(--text-muted);">— No Sheet</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if td.sheet %}{{ td.sheet.goal_count }} goals · {{ td.sheet.total_weightage }}%{% else %}—{% endif %}
+        </td>
+        <td>
+          {% if td.sheet %}
+            <a href="{% url 'manager:sheet_review' td.sheet.pk %}" class="btn btn-outline btn-sm">Review</a>
+            {% if active_cycle %}
+            <a href="{% url 'manager:check_in' td.employee.pk active_cycle.pk %}" class="btn btn-ghost btn-sm">Check-in</a>
+            {% endif %}
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+          No direct reports found. Contact Admin to set up your team hierarchy.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

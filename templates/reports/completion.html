@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}Completion Dashboard | GoalTrack{% endblock %}
+{% block content %}
+<div class="page-container">
+  <div class="page-header">
+    <h1>Completion Dashboard</h1>
+    <p class="page-subtitle">Real-time view of goal submission and check-in completion rates.</p>
+  </div>
+
+  <div class="card-grid" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));">
+    {% for item in data %}
+    <div class="trip-card" style="cursor: default;">
+      <div class="card-body">
+        <h4>{{ item.cycle.name }}</h4>
+        <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1rem;">{{ item.cycle.get_phase_display }}</p>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; text-align: center;">
+          <div>
+            <div style="font-size: 1.6rem; font-family: 'Caveat', cursive; color: var(--text-primary);">{{ item.total_employees }}</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Employees</div>
+          </div>
+          <div>
+            <div style="font-size: 1.6rem; font-family: 'Caveat', cursive; color: var(--warning);">{{ item.sheets_submitted }}</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Submitted</div>
+          </div>
+          <div>
+            <div style="font-size: 1.6rem; font-family: 'Caveat', cursive; color: var(--success);">{{ item.sheets_approved }}</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Approved</div>
+          </div>
+        </div>
+
+        {% if item.total_employees > 0 %}
+        <div style="margin-top: 1rem;">
+          <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.3rem;">Approval Rate</div>
+          <div style="background: var(--bg-secondary); border-radius: 4px; height: 8px; overflow: hidden;">
+            <div style="height: 100%; background: var(--success); width: {% widthratio item.sheets_approved item.total_employees 100 %}%; transition: width 0.5s;"></div>
+          </div>
+          <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">
+            Check-ins completed: {{ item.checkins_done }}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% empty %}
+    <p style="color: var(--text-muted);">No cycle data available.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

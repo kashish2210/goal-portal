@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}Return Goal Sheet | GoalTrack{% endblock %}
+
+{% block content %}
+<div class="page-container">
+  
+  <div class="page-header">
+    <h1>Return Goals</h1>
+    <p class="page-subtitle">Send goals back to {{ sheet.employee.get_full_name }} for adjustments.</p>
+  </div>
+
+  <div class="create-trip-form-card">
+    <form method="post">
+      {% csrf_token %}
+      
+      <div class="form-group">
+        <label for="return_remark">Return Remark / Feedback</label>
+        <textarea name="return_remark" id="return_remark" class="form-control" required placeholder="Provide specific feedback on what needs to be changed..."></textarea>
+      </div>
+
+      <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+        <button type="submit" class="btn btn-primary" style="background: var(--danger); border-color: var(--danger);">Return Sheet</button>
+        <a href="{% url 'goals:manager_sheet_review' sheet.pk %}" class="btn btn-ghost">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

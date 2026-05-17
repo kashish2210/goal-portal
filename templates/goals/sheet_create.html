@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if sheet.pk %}Edit{% else %}Create{% endif %} Goal Sheet | GoalTrack{% endblock %}
+
+{% block content %}
+<div class="page-container">
+  <div class="page-header">
+    <h1>{% if sheet.pk %}Edit{% else %}Create{% endif %} Goal Sheet</h1>
+    <p class="page-subtitle">{% if sheet.pk %}Cycle: {{ sheet.cycle.name }}{% else %}Start a new goal-setting draft{% endif %}</p>
+  </div>
+
+  <div class="create-trip-form-card">
+    <form method="post" id="goal-form">
+      {% csrf_token %}
+      
+      <div style="display:none;">{{ form.as_p }}</div>
+
+      <div class="section-header">
+        <h2>Goals</h2>
+        <div class="line"></div>
+      </div>
+      
+      {% if formset.non_form_errors %}
+        <div class="form-errors">
+          {{ formset.non_form_errors }}
+        </div>
+      {% endif %}
+
+      {{ formset.management_form }}
+      
+      <div style="overflow-x: auto;">
+        <table class="table-sketch" id="goals-table">
+          <thead>
+            <tr>
+              <th>Thrust Area / Title</th>
+              <th>UoM</th>
+              <th>Target / Date</th>
+              <th>Weightage (%)</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for f in formset.forms %}
+            <tr class="goal-form-row">
+              <td style="vertical-align: top;">
+                <div style="margin-bottom: 0.5rem;">{{ f.thrust_area }}</div>
+                <div>{{ f.title }}</div>
+                {% if f.title.errors %}<div class="form-error">{{ f.title.errors }}</div>{% endif %}
+              </td>
+              <td style="vertical-align: top;">
+                {{ f.uom }}
+                {% if f.uom.errors %}<div class="form-error">{{ f.uom.errors }}</div>{% endif %}
+              </td>
+              <td style="vertical-align: top;">
+                <div style="margin-bottom: 0.5rem;">{{ f.target }}</div>
+                <div>{{ f.target_date }}</div>
+                {% if f.target.errors %}<div class="form-error">{{ f.target.errors }}</div>{% endif %}
+                {% if f.target_date.errors %}<div class="form-error">{{ f.target_date.errors }}</div>{% endif %}
+              </td>
+              <td style="vertical-align: top;">
+                {{ f.weightage }}
+                {% if f.weightage.errors %}<div class="form-error">{{ f.weightage.errors }}</div>{% endif %}
+              </td>
+              <td style="vertical-align: top; text-align: center;">
+                {% if f.instance.pk %}
+                  <label class="check-label" style="display:inline-flex;">
+                    {{ f.DELETE }} <span style="color:var(--danger)">Delete</span>
+                  </label>
+                {% else %}
+                  <span style="color:var(--text-muted); font-size:0.8rem;">(New)</span>
+                {% endif %}
+                {% for hidden in f.hidden_fields %}
+                  {{ hidden }}
+                {% endfor %}
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div style="margin-top: 1.5rem; display: flex; gap: 1rem; align-items: center;">
+        <button class="btn btn-primary" type="submit">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Save Draft
+        </button>
+        {% if sheet.pk %}
+        <a class="btn btn-outline" href="{% url 'goals:sheet_submit' sheet.pk %}">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          Submit for Approval
+        </a>
+        <a class="btn btn-ghost" href="{% url 'goals:sheet_detail' sheet.pk %}">Cancel</a>
+        {% else %}
+        <a class="btn btn-ghost" href="{% url 'goals:sheet_list' %}">Cancel</a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const inputs = document.querySelectorAll('#goal-form input[type="text"], #goal-form input[type="number"], #goal-form input[type="date"], #goal-form select, #goal-form textarea');
+    inputs.forEach(input => {
+      input.classList.add('form-control');
+    });
+    
+    // UoM logic to disable target/date based on UoM type could go here
+  });
+</script>
+{% endblock %}

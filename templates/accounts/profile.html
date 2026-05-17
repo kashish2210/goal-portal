@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block title %}My Profile | GoalTrack{% endblock %}
+{% block content %}
+<div class="page-container">
+  <div class="page-header">
+    <h1>My Profile</h1>
+    <p class="page-subtitle">{{ user.get_full_name|default:user.username }} · {{ user.get_role_display }}</p>
+  </div>
+
+  <div class="create-trip-form-card">
+    <div style="display: grid; grid-template-columns: auto 1fr; gap: 2rem; align-items: start;">
+      <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-family: 'Caveat', cursive; font-size: 2.5rem; color: #fff;">
+        {{ user.first_name|first|upper|default:user.username|first|upper }}
+      </div>
+      <div>
+        <h2 style="margin-bottom: 0.5rem;">{{ user.get_full_name|default:user.username }}</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 1rem;">@{{ user.username }}</p>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+          <div>
+            <label style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Email</label>
+            <p style="font-weight: 500;">{{ user.email|default:"—" }}</p>
+          </div>
+          <div>
+            <label style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Employee ID</label>
+            <p style="font-weight: 500;">{{ user.employee_id|default:"—" }}</p>
+          </div>
+          <div>
+            <label style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Department</label>
+            <p style="font-weight: 500;">{{ user.department.name|default:"—" }}</p>
+          </div>
+          <div>
+            <label style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Manager</label>
+            <p style="font-weight: 500;">{{ user.manager.get_full_name|default:"—" }}</p>
+          </div>
+          <div>
+            <label style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Role</label>
+            <p style="font-weight: 500;">{{ user.get_role_display }}</p>
+          </div>
+          <div>
+            <label style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Phone</label>
+            <p style="font-weight: 500;">{{ user.phone|default:"—" }}</p>
+          </div>
+        </div>
+
+        <a href="{% url 'accounts:change_password' %}" class="btn btn-outline btn-sm">Change Password</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-header" style="margin-top: 2rem;">
+    <h2>My Goal Sheets</h2>
+    <div class="line"></div>
+  </div>
+  <div class="card-grid">
+    {% for sheet in user.goal_sheets.all|slice:":6" %}
+    <div class="trip-card" onclick="window.location.href='{% url 'goals:sheet_detail' sheet.pk %}'">
+      <div class="card-body">
+        <h4>{{ sheet.cycle.name }}</h4>
+        <p>{{ sheet.get_status_display }}</p>
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;">{{ sheet.goal_count }} goals · {{ sheet.total_weightage }}% total</div>
+      </div>
+    </div>
+    {% empty %}
+    <p style="color: var(--text-muted);">No goal sheets yet.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block title %}Goal Sheet Detail | GoalTrack{% endblock %}
+{% block content %}
+<div class="page-container">
+  <div class="page-header">
+    <h1>Goal Sheet: {{ sheet.cycle.name }}</h1>
+    <p class="page-subtitle">{{ sheet.employee.get_full_name|default:sheet.employee.username }} · {{ sheet.employee.department.name|default:"No Department" }}</p>
+  </div>
+
+  <div class="create-trip-form-card">
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; margin-bottom: 1.5rem;">
+      {% if sheet.status == 'approved' %}
+        <span style="padding: 0.3rem 0.9rem; border-radius: 20px; background: rgba(76,175,80,0.15); color: var(--success); font-weight: 600; border: 1px solid var(--success);">✓ Approved</span>
+      {% elif sheet.status == 'submitted' %}
+        <span style="padding: 0.3rem 0.9rem; border-radius: 20px; background: rgba(243,156,18,0.15); color: var(--warning); font-weight: 600; border: 1px solid var(--warning);">⏳ Submitted</span>
+      {% elif sheet.status == 'returned' %}
+        <span style="padding: 0.3rem 0.9rem; border-radius: 20px; background: rgba(231,76,60,0.15); color: var(--danger); font-weight: 600; border: 1px solid var(--danger);">↩ Returned</span>
+      {% else %}
+        <span style="padding: 0.3rem 0.9rem; border-radius: 20px; background: var(--bg-secondary); font-weight: 500;">✎ Draft</span>
+      {% endif %}
+      <span style="font-size: 0.9rem; color: var(--text-secondary);">Total Weightage: <strong>{{ sheet.total_weightage }}%</strong></span>
+      {% if sheet.is_locked %}
+      <span style="padding: 0.3rem 0.9rem; border-radius: 20px; background: rgba(231,76,60,0.1); color: var(--danger); font-size: 0.85rem;">🔒 Locked</span>
+      {% endif %}
+    </div>
+
+    {% if sheet.return_remark and sheet.status == 'returned' %}
+    <div style="padding: 1rem; background: rgba(231,76,60,0.08); border: 1px solid var(--danger); border-radius: 8px; margin-bottom: 1.5rem;">
+      <strong style="color: var(--danger);">Manager Remark:</strong> {{ sheet.return_remark }}
+    </div>
+    {% endif %}
+
+    <table class="table-sketch">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Goal</th>
+          <th>UoM</th>
+          <th>Target</th>
+          <th>Weightage</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for g in sheet.goals.all %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td>
+            <strong>{{ g.title }}</strong>
+            {% if g.is_shared %}<span style="font-size: 0.75rem; background: var(--accent-light); color: var(--accent); padding: 0.1rem 0.4rem; border-radius: 8px; margin-left: 0.4rem;">Shared</span>{% endif %}
+            <div style="font-size: 0.8rem; color: var(--text-secondary);">{{ g.thrust_area.name }}</div>
+          </td>
+          <td>{{ g.get_uom_display }}</td>
+          <td>{% if g.target %}{{ g.target }}{% elif g.target_date %}{{ g.target_date }}{% else %}Zero{% endif %}</td>
+          <td><strong>{{ g.weightage }}%</strong></td>
+          <td>
+            {% if g.status == 'completed' %}<span style="color: var(--success);">{{ g.get_status_display }}</span>
+            {% elif g.status == 'on_track' %}<span style="color: #007bff;">{{ g.get_status_display }}</span>
+            {% else %}<span style="color: var(--text-muted);">{{ g.get_status_display }}</span>{% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" style="text-align:center; color: var(--text-muted);">No goals defined yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+      {% if sheet.status == 'draft' or sheet.status == 'returned' %}
+        <a href="{% url 'goals:sheet_edit' sheet.pk %}" class="btn btn-outline">✎ Edit Goals</a>
+        <a href="{% url 'goals:sheet_submit' sheet.pk %}" class="btn btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          Submit for Approval
+        </a>
+      {% endif %}
+      {% if sheet.status == 'approved' %}
+        {% with active_cycles=sheet.cycle.pk %}
+        <a href="{% url 'goals:sheet_checkin' sheet.pk sheet.cycle.pk %}" class="btn btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          Enter Check-in Data
+        </a>
+        {% endwith %}
+      {% endif %}
+      <a href="{% url 'goals:sheet_list' %}" class="btn btn-ghost">← Back</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block title %}All Goal Sheets | GoalTrack{% endblock %}
+{% block content %}
+<div class="page-container">
+  <div class="page-header">
+    <h1>All Goal Sheets</h1>
+    <p class="page-subtitle">View and manage all employee goal sheets.</p>
+  </div>
+
+  <!-- Filters -->
+  <form method="get" style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+    <select name="cycle" class="form-control" style="width: auto;">
+      <option value="">All Cycles</option>
+      {% for c in cycles %}
+      <option value="{{ c.pk }}" {% if selected_cycle == c.pk|stringformat:'s' %}selected{% endif %}>{{ c.name }}</option>
+      {% endfor %}
+    </select>
+    <select name="status" class="form-control" style="width: auto;">
+      <option value="">All Statuses</option>
+      {% for val, label in status_choices %}
+      <option value="{{ val }}" {% if selected_status == val %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-outline btn-sm">Filter</button>
+    <a href="{% url 'portal:all_sheets' %}" class="btn btn-ghost btn-sm">Clear</a>
+  </form>
+
+  <table class="table-sketch">
+    <thead>
+      <tr><th>Employee</th><th>Cycle</th><th>Status</th><th>Goals</th><th>Locked</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      {% for sheet in sheets %}
+      <tr>
+        <td>
+          <strong>{{ sheet.employee.get_full_name }}</strong>
+          <div style="font-size: 0.8rem; color: var(--text-muted);">{{ sheet.employee.employee_id|default:sheet.employee.username }}</div>
+        </td>
+        <td>{{ sheet.cycle.name }}</td>
+        <td>
+          {% if sheet.status == 'approved' %}<span style="color: var(--success); font-weight: 600;">{{ sheet.get_status_display }}</span>
+          {% elif sheet.status == 'submitted' %}<span style="color: var(--warning); font-weight: 600;">{{ sheet.get_status_display }}</span>
+          {% elif sheet.status == 'returned' %}<span style="color: var(--danger); font-weight: 600;">{{ sheet.get_status_display }}</span>
+          {% else %}<span style="color: var(--text-muted);">{{ sheet.get_status_display }}</span>{% endif %}
+        </td>
+        <td>{{ sheet.goal_count }} · {{ sheet.total_weightage }}%</td>
+        <td>
+          {% if sheet.is_locked %}
+            <span style="color: var(--danger);">🔒 Locked</span>
+          {% else %}
+            <span style="color: var(--success);">🔓 Open</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if sheet.is_locked %}
+          <form method="post" action="{% url 'portal:sheet_unlock' sheet.pk %}" onsubmit="return confirm('Unlock this sheet? This will allow edits after approval.')">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline btn-sm" style="color: var(--warning); border-color: var(--warning);">Unlock</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" style="text-align:center; color: var(--text-muted);">No sheets match your filters.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

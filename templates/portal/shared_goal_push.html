@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block title %}Push Shared Goal | GoalTrack{% endblock %}
+{% block content %}
+<div class="page-container">
+  <div class="page-header">
+    <h1>Push Shared Goal</h1>
+    <p class="page-subtitle">Deploy a departmental KPI to all employees in a department.</p>
+  </div>
+  <div class="create-trip-form-card">
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-row">
+        <div class="form-group" style="grid-column: span 2;">
+          <label>Goal Title</label>
+          <input type="text" name="title" class="form-control" placeholder="e.g. Reduce TAT by 15%" required>
+        </div>
+        <div class="form-group">
+          <label>Thrust Area</label>
+          <select name="thrust_area" class="form-control" required>
+            <option value="">Select Thrust Area</option>
+            {% for area in thrust_areas %}
+            <option value="{{ area.pk }}">{{ area }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Unit of Measurement</label>
+          <select name="uom" class="form-control" required id="uom-select">
+            {% for val, label in uom_choices %}
+            <option value="{{ val }}">{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group" id="target-field">
+          <label>Target Value</label>
+          <input type="number" step="0.01" name="target" class="form-control" placeholder="Numeric target">
+        </div>
+        <div class="form-group" id="date-field" style="display:none;">
+          <label>Target Date</label>
+          <input type="date" name="target_date" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Goal Cycle</label>
+          <select name="cycle" class="form-control" required>
+            <option value="">Select Cycle</option>
+            {% for c in cycles %}
+            <option value="{{ c.pk }}">{{ c.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Target Department</label>
+          <select name="department" class="form-control" required>
+            <option value="">Select Department</option>
+            {% for dept in depts %}
+            <option value="{{ dept.pk }}">{{ dept.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+        <button type="submit" class="btn btn-primary">📤 Push to Department</button>
+        <a href="{% url 'portal:shared_goal_list' %}" class="btn btn-ghost">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+  const uomSelect = document.getElementById('uom-select');
+  const targetField = document.getElementById('target-field');
+  const dateField = document.getElementById('date-field');
+  function toggleFields() {
+    const val = uomSelect.value;
+    if (val === 'timeline') {
+      targetField.style.display = 'none';
+      dateField.style.display = '';
+    } else if (val === 'zero') {
+      targetField.style.display = 'none';
+      dateField.style.display = 'none';
+    } else {
+      targetField.style.display = '';
+      dateField.style.display = 'none';
+    }
+  }
+  uomSelect.addEventListener('change', toggleFields);
+  toggleFields();
+</script>
+{% endblock %}

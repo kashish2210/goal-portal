@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}Audit Log | GoalTrack{% endblock %}
+{% block content %}
+<div class="page-container">
+  <div class="page-header">
+    <h1>Audit Log</h1>
+    <p class="page-subtitle">All post-lock changes and key workflow events are recorded here.</p>
+  </div>
+  <div style="margin-bottom: 1.5rem;">
+    <a href="{% url 'portal:audit_log_export' %}" class="btn btn-outline btn-sm">📥 Export CSV</a>
+  </div>
+  <table class="table-sketch">
+    <thead>
+      <tr><th>Timestamp</th><th>User</th><th>Action</th><th>Sheet</th><th>Details</th></tr>
+    </thead>
+    <tbody>
+      {% for log in logs %}
+      <tr>
+        <td style="font-size: 0.82rem; color: var(--text-muted); white-space: nowrap;">{{ log.timestamp|date:"M d, H:i" }}</td>
+        <td>{{ log.user.username|default:"System" }}</td>
+        <td>
+          {% if log.action == 'approve' %}<span style="color: var(--success);">{{ log.get_action_display }}</span>
+          {% elif log.action == 'return' %}<span style="color: var(--danger);">{{ log.get_action_display }}</span>
+          {% elif log.action == 'unlock' %}<span style="color: var(--warning);">{{ log.get_action_display }}</span>
+          {% else %}{{ log.get_action_display }}{% endif %}
+        </td>
+        <td style="font-size: 0.85rem;">
+          {% if log.goal_sheet %}{{ log.goal_sheet.employee.get_full_name }}{% endif %}
+        </td>
+        <td style="font-size: 0.82rem; color: var(--text-secondary);">
+          {% if log.field_changed %}{{ log.field_changed }}: <em>{{ log.old_value }}</em> → <strong>{{ log.new_value }}</strong>{% endif %}
+          {% if log.extra_notes %}{{ log.extra_notes|truncatechars:80 }}{% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" style="text-align:center; color: var(--text-muted);">No audit events recorded yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

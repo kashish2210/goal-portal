@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Team Goal Sheets | GoalTrack{% endblock %}
+
+{% block content %}
+<div class="page-container">
+  
+  <div class="dash-welcome">
+    <h1>Review Team Goals</h1>
+    <p>Submitted goal sheets pending your approval.</p>
+  </div>
+
+  <div class="card-grid">
+    {% for s in sheets %}
+    <div class="trip-card" onclick="window.location.href='{% url 'goals:manager_sheet_review' s.pk %}'">
+      <div class="card-img" style="background: var(--accent-light); color: var(--warning);">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div class="card-body">
+        <h4>{{ s.employee.get_full_name }}</h4>
+        <p>{{ s.cycle.name }}</p>
+        <div class="trip-desc">
+          Submitted: {{ s.submitted_at|date:"M d, Y" }}
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="empty-state">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      <p>No submitted goal sheets pending review.</p>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard | GoalTrack{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+  <div class="dash-welcome">
+    <h1>Welcome, {{ request.user.first_name|default:request.user.username }}!</h1>
+    <p>Here is an overview of your goal tracking.</p>
+  </div>
+
+  <div class="dash-banner banner-slider">
+    <!-- Slider representation for phase alerts -->
+    <div class="item" style="background: linear-gradient(135deg, var(--accent), #ff9a76);">
+      <div class="content">
+        <div class="name">Phase 1: Goal Setting</div>
+        <div class="des">Draft and submit your goals for the current cycle before the deadline.</div>
+        <a href="{% url 'goals:sheet_list' %}" class="btn btn-outline seeMore" style="border-color: #fff; color: #fff;">View Sheets</a>
+      </div>
+    </div>
+    <div class="item" style="background: linear-gradient(135deg, #6c5ce7, #a29bfe);">
+      <div class="content">
+        <div class="name">Q1 Check-in</div>
+        <div class="des">Quarterly check-in window opens in July.</div>
+      </div>
+    </div>
+    
+    <div class="slider-controls">
+      <button class="slider-btn" id="prevSlide">&lt;</button>
+      <button class="slider-btn" id="nextSlide">&gt;</button>
+    </div>
+  </div>
+
+  <div class="section-header">
+    <h2>Quick Actions</h2>
+    <div class="line"></div>
+  </div>
+
+  <div class="card-grid">
+    <div class="trip-card" onclick="window.location.href='{% url 'goals:sheet_list' %}'">
+      <div class="card-img" style="background: var(--bg-secondary); color: var(--accent);">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      </div>
+      <div class="card-body">
+        <h4>My Goal Sheets</h4>
+        <p>Manage and track your goals</p>
+      </div>
+    </div>
+    <div class="trip-card" onclick="window.location.href='{% url 'goals:sheet_create' %}'">
+      <div class="card-img" style="background: var(--bg-secondary); color: var(--success);">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+      </div>
+      <div class="card-body">
+        <h4>Create New Goals</h4>
+        <p>Draft goals for current cycle</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Simple slider functionality
+  document.addEventListener('DOMContentLoaded', () => {
+    const nextBtn = document.getElementById('nextSlide');
+    const prevBtn = document.getElementById('prevSlide');
+    const slider = document.querySelector('.banner-slider');
+    
+    if(nextBtn && prevBtn && slider) {
+      nextBtn.addEventListener('click', () => {
+        const items = document.querySelectorAll('.banner-slider .item');
+        slider.insertBefore(items[0], null); // move first to end
+      });
+      prevBtn.addEventListener('click', () => {
+        const items = document.querySelectorAll('.banner-slider .item');
+        slider.insertBefore(items[items.length-1], items[0]); // move last to start
+      });
+    }
+  });
+</script>
+{% endblock %}

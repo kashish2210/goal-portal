@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Achievement Report | GoalTrack{% endblock %}
+{% block content %}
+<div class="page-container">
+  <div class="page-header">
+    <h1>Achievement Report</h1>
+    <p class="page-subtitle">Planned Target vs. Actual Achievement by cycle.</p>
+  </div>
+
+  <form method="get" style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap;">
+    <select name="cycle" class="form-control" style="width: auto;" required>
+      <option value="">Select Cycle</option>
+      {% for c in cycles %}
+      <option value="{{ c.pk }}" {% if selected_cycle and selected_cycle.pk == c.pk %}selected{% endif %}>{{ c.name }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-outline btn-sm">View Report</button>
+    {% if selected_cycle %}
+    <a href="{% url 'reports:achievement_export' %}?cycle={{ selected_cycle.pk }}" class="btn btn-primary btn-sm">📥 Export CSV</a>
+    {% endif %}
+  </form>
+
+  {% if selected_cycle %}
+  <h3 style="margin-bottom: 1rem; font-family: 'Caveat', cursive;">{{ selected_cycle.name }}</h3>
+  <table class="table-sketch">
+    <thead>
+      <tr><th>Employee</th><th>Goal</th><th>UoM</th><th>Target</th><th>Actual</th><th>Score</th><th>Status</th><th>Weightage</th></tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>
+        <td>
+          <strong>{{ row.employee.get_full_name }}</strong>
+          <div style="font-size: 0.8rem; color: var(--text-muted);">{{ row.employee.department.name|default:"—" }}</div>
+        </td>
+        <td>{{ row.goal.title }}</td>
+        <td>{{ row.goal.get_uom_display }}</td>
+        <td>{{ row.goal.target|default:row.goal.target_date|default:"—" }}</td>
+        <td>{{ row.achievement.actual|default:row.achievement.actual_date|default:"—" }}</td>
+        <td>
+          {% if row.achievement.computed_score is not None %}
+            <strong style="color: {% if row.achievement.computed_score >= 0.9 %}var(--success){% elif row.achievement.computed_score >= 0.6 %}var(--warning){% else %}var(--danger){% endif %};">
+              {{ row.score_pct }}
+            </strong>
+          {% else %}—{% endif %}
+        </td>
+        <td>{{ row.achievement.get_status_display }}</td>
+        <td>{{ row.goal.weightage }}%</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="8" style="text-align:center; color: var(--text-muted);">No achievement data for this cycle yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</div>
+{% endblock %}

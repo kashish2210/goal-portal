@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Register | GoalTrack{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+  <div class="auth-card signup-card">
+    <div class="auth-avatar">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+      </svg>
+    </div>
+    <h2>Create Account</h2>
+    <p class="auth-subtitle">Join the GoalTrack portal.</p>
+    
+    <form method="post" id="register-form">
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+        <div class="form-error" style="margin-bottom: 1rem; text-align: center;">
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+      
+      <div class="form-row">
+        {% for field in form %}
+          <div class="form-group {% if forloop.last or field.name == 'username' %}info-item-full{% endif %}">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+              <div class="form-error">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+      
+      <button class="btn btn-primary btn-block" type="submit" style="margin-top: 1rem;">Register</button>
+    </form>
+    
+    <div class="auth-footer">
+      <p>Already have an account? <a href="{% url 'accounts:login' %}">Login</a></p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const inputs = document.querySelectorAll('#register-form input, #register-form select');
+    inputs.forEach(input => {
+      input.classList.add('form-control');
+    });
+  });
+</script>
+{% endblock %}

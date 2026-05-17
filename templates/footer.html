@@ -1,0 +1,49 @@
+<!-- templates/footer.html -->
+<footer class="site-footer">
+  <div class="footer-content">
+    <div class="footer-brand">
+      <h3>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="vertical-align: bottom;">
+          <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2" fill="currentColor"/>
+        </svg>
+        GoalTrack
+      </h3>
+      <p>Structured goal setting, quarterly check-ins, and performance visibility — all in one place.</p>
+    </div>
+
+    <div class="footer-col">
+      <h4>Employee</h4>
+      <ul>
+        <li><a href="{% url 'goals:sheet_list' %}">My Goal Sheets</a></li>
+        <li><a href="{% url 'goals:sheet_create' %}">Create Goals</a></li>
+        <li><a href="{% url 'accounts:profile' %}">My Profile</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <h4>Manager</h4>
+      <ul>
+        <li><a href="{% url 'manager:dashboard' %}">Team Dashboard</a></li>
+        <li><a href="{% url 'manager:check_in_list' %}">Check-ins</a></li>
+        <li><a href="{% url 'reports:achievement' %}">Achievement Report</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <h4>Admin &amp; HR</h4>
+      <ul>
+        <li><a href="{% url 'portal:dashboard' %}">Portal Dashboard</a></li>
+        <li><a href="{% url 'portal:cycle_list' %}">Manage Cycles</a></li>
+        <li><a href="{% url 'portal:audit_log' %}">Audit Log</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <p>&copy; {% now "Y" %} GoalTrack Portal. All rights reserved.</p>
+    <div class="footer-socials">
+      <a href="{% url 'portal:audit_log' %}" style="font-size: 0.9rem;">Audit Trail</a>
+      <a href="{% url 'accounts:change_password' %}" style="font-size: 0.9rem;">Security</a>
+    </div>
+  </div>
+</footer>

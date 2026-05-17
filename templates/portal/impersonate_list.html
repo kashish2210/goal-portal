@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}Impersonate User | GoalTrack{% endblock %}
+
+{% block content %}
+<div class="page-container" style="max-width: 860px;">
+  <div style="margin-bottom: 1.5rem;">
+    <a href="{% url 'portal:dashboard' %}" style="color: var(--text-secondary); font-size: 0.9rem; text-decoration: none;">← Back to Admin Portal</a>
+  </div>
+
+  <div style="margin-bottom: 2rem;">
+    <h1 style="font-family: 'Caveat', cursive; font-size: 2.6rem; margin-bottom: 0.3rem;">Login As User</h1>
+    <p style="color: var(--text-secondary);">Temporarily view the portal from another user's perspective. You can stop at any time.</p>
+  </div>
+
+  <!-- Warning banner -->
+  <div style="padding: 1rem 1.25rem; background: rgba(243,156,18,0.1); border: 2px solid var(--warning); border-radius: 10px; margin-bottom: 2rem; display: flex; gap: 1rem; align-items: flex-start;">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2" style="flex-shrink: 0; margin-top: 1px;"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    <div>
+      <strong style="color: var(--warning);">Admin Feature — Use Responsibly</strong>
+      <p style="margin: 0; font-size: 0.9rem; color: var(--text-secondary);">All actions you take while impersonating will be performed as that user. This session is recorded in audit logs.</p>
+    </div>
+  </div>
+
+  <!-- User list by role -->
+  {% regroup users by get_role_display as role_groups %}
+  {% for group in role_groups %}
+  <div style="margin-bottom: 2rem;">
+    <h3 style="font-family: 'Caveat', cursive; font-size: 1.4rem; margin-bottom: 1rem; padding-bottom: 0.4rem; border-bottom: var(--border-light);">{{ group.grouper }}</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem;">
+      {% for u in group.list %}
+      <div style="background: var(--bg-card); border: var(--border-sketch); border-radius: 12px; padding: 1.25rem; box-shadow: var(--shadow-sketch); display: flex; align-items: center; gap: 1rem;">
+        <!-- Avatar -->
+        <div style="width: 46px; height: 46px; border-radius: 50%; background: {% if u.role == 'admin' %}var(--danger){% elif u.role == 'manager' %}var(--warning){% else %}var(--success){% endif %}; display: flex; align-items: center; justify-content: center; font-family: 'Caveat', cursive; font-size: 1.3rem; color: #fff; flex-shrink: 0; opacity: {% if u.is_active %}1{% else %}0.4{% endif %};">
+          {{ u.first_name|first|upper|default:u.username|first|upper }}
+        </div>
+        <div style="flex: 1; min-width: 0;">
+          <div style="font-weight: 600; font-size: 0.95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ u.get_full_name|default:u.username }}</div>
+          <div style="font-size: 0.8rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@{{ u.username }} · {{ u.department.name|default:"No dept" }}</div>
+        </div>
+        <form method="post" action="{% url 'portal:impersonate_start' u.pk %}" onsubmit="return confirm('Login as {{ u.username }}? You will see the portal as them.')">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-outline btn-sm" style="white-space: nowrap;" {% if not u.is_active %}disabled title="User is inactive"{% endif %}>
+            View as →
+          </button>
+        </form>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% empty %}
+  <p style="color: var(--text-muted);">No other users found.</p>
+  {% endfor %}
+</div>
+{% endblock %}

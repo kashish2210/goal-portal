@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}Departments | GoalTrack{% endblock %}
+{% block content %}
+<div class="page-container">
+  <div class="page-header"><h1>Departments</h1></div>
+  <table class="table-sketch">
+    <thead><tr><th>Name</th><th>Code</th><th>Members</th><th>Thrust Areas</th></tr></thead>
+    <tbody>
+      {% for dept in depts %}
+      <tr>
+        <td><strong>{{ dept.name }}</strong></td>
+        <td>{{ dept.code|default:"—" }}</td>
+        <td>{{ dept.members.count }}</td>
+        <td>{{ dept.thrust_areas.count }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4" style="text-align:center; color: var(--text-muted);">No departments yet. Add via admin panel.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

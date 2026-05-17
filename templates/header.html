@@ -1,0 +1,135 @@
+<!-- templates/header.html -->
+{% load static %}
+
+{# ── Impersonate sticky banner ── #}
+{% if request.session.impersonating %}
+<div class="impersonate-bar">
+  <span>
+    ⚠&nbsp; You are viewing as
+    <strong>{{ user.get_full_name|default:user.username }}</strong>
+    ({{ user.get_role_display }}) &mdash; impersonated by
+    <em>{{ request.session.real_user_name }}</em>
+  </span>
+  <a href="{% url 'portal:impersonate_stop' %}">&#10005; End Impersonation</a>
+</div>
+{% endif %}
+
+<header class="nav-header">
+  <a href="/" class="nav-logo">
+    <svg class="logo-icon" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2" fill="currentColor"/>
+    </svg>
+    GoalTrack
+  </a>
+
+  <!-- Mobile toggle -->
+  <button class="mobile-toggle" id="mobile-toggle" aria-label="Menu">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  </button>
+
+  <ul class="nav-links" id="nav-links">
+    {% if user.is_authenticated %}
+
+      {# ── EMPLOYEE (everyone sees this) ─────────────────────── #}
+      <li><a href="{% url 'goals:sheet_list' %}" {% if request.resolver_match.namespace == 'goals' %}class="active"{% endif %}>My Goals</a></li>
+
+      {# ── MANAGER ───────────────────────────────────────────── #}
+      {% if user.is_manager or user.is_admin %}
+      <li class="nav-dropdown">
+        <a href="{% url 'manager:dashboard' %}" class="nav-drop-trigger">
+          Team <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-left:2px;"><polyline points="6 9 12 15 18 9"/></svg>
+        </a>
+        <ul class="nav-drop-menu">
+          <li><a href="{% url 'manager:dashboard' %}">Team Dashboard</a></li>
+          <li><a href="{% url 'goals:manager_sheet_list' %}">Pending Reviews</a></li>
+          <li><a href="{% url 'manager:check_in_list' %}">Check-in Tracker</a></li>
+        </ul>
+      </li>
+      {% endif %}
+
+      {# ── ADMIN ─────────────────────────────────────────────── #}
+      {% if user.is_admin %}
+      <li class="nav-dropdown">
+        <a href="{% url 'portal:dashboard' %}" class="nav-drop-trigger">
+          Admin <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-left:2px;"><polyline points="6 9 12 15 18 9"/></svg>
+        </a>
+        <ul class="nav-drop-menu">
+          <li><a href="{% url 'portal:dashboard' %}">Admin Overview</a></li>
+          <li class="nav-drop-divider"></li>
+          <li><span class="nav-drop-label">Goal Management</span></li>
+          <li><a href="{% url 'portal:cycle_list' %}">Goal Cycles</a></li>
+          <li><a href="{% url 'portal:all_sheets' %}">All Sheets</a></li>
+          <li><a href="{% url 'portal:shared_goal_list' %}">Shared Goals</a></li>
+          <li class="nav-drop-divider"></li>
+          <li><span class="nav-drop-label">Organisation</span></li>
+          <li><a href="{% url 'portal:user_list' %}">Manage Users</a></li>
+          <li><a href="{% url 'portal:department_list' %}">Departments</a></li>
+          <li><a href="{% url 'portal:thrust_area_list' %}">Thrust Areas</a></li>
+          <li class="nav-drop-divider"></li>
+          <li><span class="nav-drop-label">Reports &amp; Audit</span></li>
+          <li><a href="{% url 'reports:achievement' %}">Achievement Report</a></li>
+          <li><a href="{% url 'reports:completion' %}">Completion Dashboard</a></li>
+          <li><a href="{% url 'portal:audit_log' %}">Audit Log</a></li>
+        </ul>
+      </li>
+      {% endif %}
+
+      {# ── REPORTS shortcut (manager + admin) ───────────────── #}
+      {% if user.is_manager or user.is_admin %}
+      <li><a href="{% url 'reports:achievement' %}">Reports</a></li>
+      {% endif %}
+
+    {% endif %}
+  </ul>
+
+  <div class="nav-right">
+    <!-- Theme toggle -->
+    <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark/light mode">
+      <span class="toggle-thumb"></span>
+    </button>
+
+    {% if user.is_authenticated %}
+    <!-- User avatar dropdown -->
+    <div class="nav-dropdown user-menu-wrap">
+      <button type="button" class="nav-drop-trigger user-avatar-btn">
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:'Caveat',cursive;font-size:1rem;color:#fff;flex-shrink:0;">
+          {{ user.first_name|first|upper|default:user.username|first|upper }}
+        </div>
+        <span style="font-weight:500;font-size:0.9rem;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+          {{ user.get_full_name|default:user.username }}
+        </span>
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <ul class="nav-drop-menu">
+        <li style="padding:0.5rem 1rem 0.4rem;border-bottom:var(--border-light);">
+          <span style="display:block;font-weight:600;font-size:0.9rem;color:var(--text-primary);">{{ user.get_full_name|default:user.username }}</span>
+          <span style="font-size:0.8rem;color:var(--text-muted);">{{ user.get_role_display }}{% if request.session.impersonating %} &mdash; <span style="color:var(--warning);font-weight:600;">Impersonating</span>{% endif %}</span>
+        </li>
+        <li><a href="{% url 'accounts:profile' %}">My Profile</a></li>
+        <li><a href="{% url 'accounts:change_password' %}">Change Password</a></li>
+        {% if request.session.impersonating %}
+        <li class="nav-drop-divider"></li>
+        <li><a href="{% url 'portal:impersonate_stop' %}" style="color:var(--warning);font-weight:600;">&#10005; End Impersonation</a></li>
+        {% elif user.is_admin %}
+        <li class="nav-drop-divider"></li>
+        <li><span class="nav-drop-label">Admin</span></li>
+        <li><a href="{% url 'portal:impersonate_list' %}">Login as User&hellip;</a></li>
+        {% endif %}
+        <li class="nav-drop-divider"></li>
+        <li>
+          <form method="post" action="{% url 'accounts:logout' %}" style="margin:0;">
+            {% csrf_token %}
+            <button type="submit" style="background:none;border:none;cursor:pointer;width:100%;text-align:left;padding:0.45rem 1rem;color:var(--danger);font-size:0.88rem;font-family:inherit;border-radius:4px;margin:0 4px;margin-bottom:4px;width:calc(100% - 8px);">
+              Sign Out
+            </button>
+          </form>
+        </li>
+      </ul>
+    </div>
+    {% else %}
+      <a href="{% url 'accounts:login' %}" class="btn btn-outline btn-sm">Login</a>
+    {% endif %}
+  </div>
+</header>
