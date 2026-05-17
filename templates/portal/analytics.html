@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% block title %}Analytics Dashboard | GoalTrack{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+  <div class="dash-welcome">
+    <h1>Organization Analytics</h1>
+    <p>Performance trends, goal distribution, and manager check-in effectiveness.</p>
+  </div>
+
+  <form method="get" class="filter-bar" style="display: flex; gap: 1rem; align-items: center; margin-bottom: 2rem;">
+    <label style="font-weight: 600; font-family: 'Caveat', cursive; font-size: 1.2rem;">Select Cycle:</label>
+    <select name="cycle" class="form-control" style="width: 250px;" onchange="this.form.submit()">
+      <option value="">All Cycles</option>
+      {% for c in cycles %}
+      <option value="{{ c.pk }}" {% if c.pk == selected_cycle_id %}selected{% endif %}>{{ c.name }}</option>
+      {% endfor %}
+    </select>
+  </form>
+
+  <div class="card-grid" style="grid-template-columns: repeat(2, 1fr); margin-bottom: 2rem;">
+    <div class="trip-card" style="cursor: default; padding: 1.5rem;">
+      <h3 style="font-family: 'Caveat', cursive; font-size: 1.5rem; margin-bottom: 1rem; border-bottom: var(--border-sketch); padding-bottom: 0.5rem;">Goal Distribution (Thrust Areas)</h3>
+      <canvas id="thrustChart" height="250"></canvas>
+    </div>
+
+    <div class="trip-card" style="cursor: default; padding: 1.5rem;">
+      <h3 style="font-family: 'Caveat', cursive; font-size: 1.5rem; margin-bottom: 1rem; border-bottom: var(--border-sketch); padding-bottom: 0.5rem;">Goal Sheet Status</h3>
+      <canvas id="statusChart" height="250"></canvas>
+    </div>
+  </div>
+
+  <div class="trip-card" style="cursor: default; padding: 1.5rem;">
+    <h3 style="font-family: 'Caveat', cursive; font-size: 1.5rem; margin-bottom: 1rem; border-bottom: var(--border-sketch); padding-bottom: 0.5rem;">Manager Effectiveness (Check-in % Complete)</h3>
+    <canvas id="managerChart" height="100"></canvas>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Colors matching Scribble design system tokens
+    const colors = ['#2ecc71', '#3498db', '#9b59b6', '#e67e22', '#f1c40f', '#e74c3c', '#1abc9c'];
+    
+    // 1. Thrust Area Pie Chart
+    const ctxThrust = document.getElementById('thrustChart').getContext('2d');
+    new Chart(ctxThrust, {
+        type: 'doughnut',
+        data: {
+            labels: {{ thrust_labels|safe }},
+            datasets: [{
+                data: {{ thrust_data|safe }},
+                backgroundColor: colors,
+                borderWidth: 2,
+                borderColor: '#111'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'right', labels: { font: { family: 'Inter' } } } }
+        }
+    });
+
+    // 2. Status Breakdown Pie Chart
+    const ctxStatus = document.getElementById('statusChart').getContext('2d');
+    new Chart(ctxStatus, {
+        type: 'pie',
+        data: {
+            labels: {{ status_labels|safe }},
+            datasets: [{
+                data: {{ status_data|safe }},
+                backgroundColor: ['#f1c40f', '#2ecc71', '#e74c3c', '#95a5a6'],
+                borderWidth: 2,
+                borderColor: '#111'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'right', labels: { font: { family: 'Inter' } } } }
+        }
+    });
+
+    // 3. Manager Effectiveness Bar Chart
+    const ctxManager = document.getElementById('managerChart').getContext('2d');
+    new Chart(ctxManager, {
+        type: 'bar',
+        data: {
+            labels: {{ mgr_labels|safe }},
+            datasets: [{
+                label: 'Check-in Completion %',
+                data: {{ mgr_data|safe }},
+                backgroundColor: '#e8734a', // accent color
+                borderColor: '#111',
+                borderWidth: 2,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: { font: { family: 'Inter' }, stepSize: 20 }
+                },
+                x: {
+                    ticks: { font: { family: 'Inter' } }
+                }
+            },
+            plugins: { legend: { display: false } }
+        }
+    });
+});
+</script>
+{% endblock %}

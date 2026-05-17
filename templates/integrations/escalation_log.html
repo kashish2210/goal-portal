@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Escalation Log — GoalTrack{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Escalation Log</h1>
+    <p class="page-subtitle">All escalation notifications sent. Admins can mark items as resolved.</p>
+  </div>
+  <a href="{% url 'integrations:escalation_rules' %}" class="btn btn-secondary">Manage Rules</a>
+</div>
+
+<div class="card">
+  <div class="card-body p-0">
+    {% if logs %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Sent At</th>
+          <th>Rule</th>
+          <th>Level</th>
+          <th>Subject (Employee)</th>
+          <th>Notified</th>
+          <th>Goal Sheet</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+        <tr class="{% if log.resolved %}opacity-50{% endif %}">
+          <td>{{ log.sent_at|date:"d M Y H:i" }}</td>
+          <td>{{ log.rule.name }}</td>
+          <td>
+            <span class="badge {% if log.level == 'hr' %}badge-error{% elif log.level == 'manager' %}badge-warning{% else %}badge-info{% endif %}">
+              {{ log.get_level_display }}
+            </span>
+          </td>
+          <td>{{ log.subject_user.get_full_name|default:log.subject_user }}</td>
+          <td>{{ log.notified_user.get_full_name|default:log.notified_user }}</td>
+          <td>
+            {% if log.goal_sheet %}
+            <a href="/goals/{{ log.goal_sheet.pk }}/">{{ log.goal_sheet.cycle.name }}</a>
+            {% else %}—{% endif %}
+          </td>
+          <td>
+            {% if log.resolved %}
+            <span class="badge badge-success">Resolved</span>
+            <small class="text-muted d-block">{{ log.resolved_at|date:"d M Y" }} by {{ log.resolved_by }}</small>
+            {% else %}
+            <span class="badge badge-warning">Open</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if not log.resolved %}
+            <form method="post" action="{% url 'integrations:escalation_resolve' log.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-success">Resolve</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state p-4">No escalation events recorded yet.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

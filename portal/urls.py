@@ -8,6 +8,11 @@ urlpatterns = [
     path('',
          views.AdminDashboardView.as_view(),
          name='dashboard'),
+
+    # Analytics dashboard
+    path('analytics/',
+         views.AnalyticsView.as_view(),
+         name='analytics'),
  
     # ── Cycle management ──────────────────────────────────────────────────────
     path('cycles/',
