@@ -77,6 +77,10 @@
           <li><span class="nav-drop-label">Escalations</span></li>
           <li><a href="{% url 'integrations:escalation_rules' %}">Escalation Rules</a></li>
           <li><a href="{% url 'integrations:escalation_log' %}">Escalation Log</a></li>
+          <li class="nav-drop-divider"></li>
+          <li><span class="nav-drop-label">Integrations</span></li>
+          <li><a href="{% url 'integrations:settings' %}">Integration Settings</a></li>
+          <li><a href="{% url 'integrations:terminal' %}">Command Terminal</a></li>
         </ul>
       </li>
       {% endif %}

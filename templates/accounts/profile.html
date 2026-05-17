@@ -1,5 +1,145 @@
 {% extends 'base.html' %}
 {% block title %}My Profile | GoalTrack{% endblock %}
+
+{% block extra_css %}
+<style>
+.profile-tabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 2px solid var(--border-color);
+  margin-bottom: 2rem;
+}
+.profile-tab {
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+.profile-tab:hover { color: var(--text-primary); }
+.profile-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.terminal-wrap { max-width: 100%; }
+.terminal-card {
+  background: var(--bg-card);
+  border: var(--border-sketch);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sketch);
+  overflow: hidden;
+}
+.terminal-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.75rem 1.2rem;
+  background: #1e1e1e;
+  border-bottom: 2px solid #333;
+}
+.terminal-dot { width: 12px; height: 12px; border-radius: 50%; }
+.dot-red { background: #ff5f57; }
+.dot-yellow { background: #febc2e; }
+.dot-green { background: #28c840; }
+.terminal-title {
+  margin-left: 0.5rem;
+  font-size: 0.82rem;
+  color: #888;
+  font-family: 'Courier New', monospace;
+}
+.terminal-screen {
+  background: #0d1117;
+  color: #c9d1d9;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.88rem;
+  padding: 1.2rem 1.5rem;
+  min-height: 320px;
+  max-height: 480px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  line-height: 1.6;
+}
+.terminal-screen .line-prompt { color: #58a6ff; }
+.terminal-screen .line-ok { color: #3fb950; }
+.terminal-screen .line-err { color: #f85149; }
+.terminal-screen .line-info { color: #d2a8ff; }
+.terminal-controls {
+  padding: 1.2rem 1.5rem;
+  background: var(--bg-secondary);
+  border-top: var(--border-light);
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.cmd-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.5rem 1.1rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border: var(--border-sketch);
+  border-radius: 6px;
+  cursor: pointer;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sketch);
+  transition: all 0.2s;
+}
+.cmd-btn:hover {
+  background: var(--accent-light);
+  box-shadow: var(--shadow-hover);
+  transform: translate(-1px, -2px);
+}
+.cmd-btn.running {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+.cmd-btn-primary {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--border-color);
+}
+.cmd-btn-primary:hover { background: var(--accent-hover); }
+.spinner {
+  display: none;
+  width: 14px; height: 14px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.terminal-info-bar {
+  display: flex;
+  gap: 2rem;
+  padding: 0.6rem 1.5rem;
+  background: var(--bg-card);
+  border-top: var(--border-light);
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+.terminal-info-bar span { display: flex; align-items: center; gap: 4px; }
+.config-form { max-width: 700px; }
+.config-section { margin-bottom: 2rem; }
+.config-section h3 {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--border-color);
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="page-container">
   <div class="page-header">
@@ -7,6 +147,15 @@
     <p class="page-subtitle">{{ user.get_full_name|default:user.username }} · {{ user.get_role_display }}</p>
   </div>
 
+  <div class="profile-tabs">
+    <a href="?tab=profile" class="profile-tab {% if active_tab == 'profile' %}active{% endif %}">Profile</a>
+    {% if user.is_admin %}
+    <a href="?tab=integrations" class="profile-tab {% if active_tab == 'integrations' %}active{% endif %}">Integrations</a>
+    <a href="?tab=terminal" class="profile-tab {% if active_tab == 'terminal' %}active{% endif %}">Terminal</a>
+    {% endif %}
+  </div>
+
+  <div class="tab-content {% if active_tab == 'profile' %}active{% endif %}" id="tab-profile">
   <div class="create-trip-form-card">
     <div style="display: grid; grid-template-columns: auto 1fr; gap: 2rem; align-items: start;">
       <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-family: 'Caveat', cursive; font-size: 2.5rem; color: #fff;">
@@ -65,5 +214,243 @@
     <p style="color: var(--text-muted);">No goal sheets yet.</p>
     {% endfor %}
   </div>
+  </div>
+
+  {% if user.is_admin %}
+  <div class="tab-content {% if active_tab == 'integrations' %}active{% endif %}" id="tab-integrations">
+    <div class="create-trip-form-card config-form">
+      <h2 style="margin-bottom: 1.5rem;">Integration Configuration</h2>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="save_integrations">
+
+        <div class="config-section">
+          <h3>🔐 Microsoft Entra ID (Azure AD) SSO</h3>
+          <div class="form-group">
+            <label>Client ID</label>
+            <input type="text" name="azure_client_id" value="{{ cfg.azure_client_id }}" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>Client Secret</label>
+            <input type="password" name="azure_client_secret" placeholder="{{ cfg.azure_client_secret|yesno:'••••••••,Leave blank' }}" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>Tenant ID</label>
+            <input type="text" name="azure_tenant_id" value="{{ cfg.azure_tenant_id }}" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>Redirect URI</label>
+            <input type="text" name="azure_redirect_uri" value="{{ cfg.azure_redirect_uri }}" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>Role Map JSON</label>
+            <textarea name="azure_role_map_json" rows="3" class="form-control">{{ cfg.azure_role_map_json }}</textarea>
+            <small style="color: var(--text-muted);">Example: {"group-id-1": "admin", "group-id-2": "manager"}</small>
+          </div>
+        </div>
+
+        <div class="config-section">
+          <h3>📧 Email Configuration</h3>
+          <div class="form-group">
+            <label>SMTP Host</label>
+            <input type="text" name="email_host" value="{{ cfg.email_host }}" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>SMTP Port</label>
+            <input type="number" name="email_port" value="{{ cfg.email_port }}" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>SMTP Username</label>
+            <input type="text" name="email_host_user" value="{{ cfg.email_host_user }}" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>SMTP Password</label>
+            <input type="password" name="email_host_password" placeholder="{{ cfg.email_host_password|yesno:'••••••••,Leave blank' }}" class="form-control">
+          </div>
+          <div class="form-group">
+            <label style="display: flex; align-items: center; gap: 0.5rem;">
+              <input type="checkbox" name="email_use_tls" {% if cfg.email_use_tls %}checked{% endif %}>
+              Use TLS
+            </label>
+          </div>
+          <div class="form-group">
+            <label>From Email</label>
+            <input type="email" name="default_from_email" value="{{ cfg.default_from_email }}" class="form-control">
+          </div>
+        </div>
+
+        <div class="config-section">
+          <h3>💬 Microsoft Teams</h3>
+          <div class="form-group">
+            <label>Webhook URL</label>
+            <input type="text" name="teams_webhook_url" value="{{ cfg.teams_webhook_url }}" class="form-control">
+          </div>
+        </div>
+
+        <div class="config-section">
+          <h3>🌐 Site Configuration</h3>
+          <div class="form-group">
+            <label>Base URL</label>
+            <input type="text" name="site_base_url" value="{{ cfg.site_base_url }}" class="form-control">
+            <small style="color: var(--text-muted);">Example: https://goal-portal.onrender.com</small>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save Configuration</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="tab-content {% if active_tab == 'terminal' %}active{% endif %}" id="tab-terminal">
+    <div class="terminal-wrap">
+      <div class="terminal-card">
+        <div class="terminal-titlebar">
+          <span class="terminal-dot dot-red"></span>
+          <span class="terminal-dot dot-yellow"></span>
+          <span class="terminal-dot dot-green"></span>
+          <span class="terminal-title">goaltrack — python manage.py</span>
+        </div>
+
+        <div class="terminal-screen" id="terminal-output">
+<span class="line-info">GoalTrack Admin Terminal — ready.</span>
+<span class="line-info">Select a command below and click Run.</span>
+<span class="line-prompt">$</span> _
+        </div>
+
+        <div class="terminal-controls">
+          {% csrf_token %}
+          {% for cmd in commands %}
+          <button class="cmd-btn {% if cmd == 'run_escalations' %}cmd-btn-primary{% endif %}"
+                  data-cmd="{{ cmd }}"
+                  onclick="runCommand('{{ cmd }}', this)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+            {{ cmd }}
+            <span class="spinner" id="spin-{{ cmd }}"></span>
+          </button>
+          {% endfor %}
+          <button class="cmd-btn" onclick="clearTerminal()" style="margin-left:auto; color:var(--text-muted);">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+            Clear
+          </button>
+        </div>
+
+        <div class="terminal-info-bar">
+          <span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Whitelisted commands only
+          </span>
+          <span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Admin access required
+          </span>
+          <span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            60s timeout per command
+          </span>
+        </div>
+      </div>
+
+      <div style="margin-top:1.5rem; background:var(--bg-card); border:var(--border-sketch); border-radius:10px; box-shadow:var(--shadow-sketch); overflow:hidden;">
+        <div style="padding:0.8rem 1.2rem; border-bottom:var(--border-light); background:var(--bg-secondary);">
+          <h3 style="font-size:1.2rem; margin:0;">Command Reference</h3>
+        </div>
+        <table class="table-sketch" style="margin:0; border-spacing:0; width:100%;">
+          <thead>
+            <tr>
+              <th style="padding:0.6rem 1rem;">Command</th>
+              <th style="padding:0.6rem 1rem;">What it does</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-family:'Courier New',monospace; font-size:0.85rem; padding:0.7rem 1rem;">run_escalations</td>
+              <td style="padding:0.7rem 1rem; font-size:0.88rem;">Evaluates all active escalation rules and fires the notification chain (employee → manager → HR).</td>
+            </tr>
+            <tr>
+              <td style="font-family:'Courier New',monospace; font-size:0.85rem; padding:0.7rem 1rem;">migrate</td>
+              <td style="padding:0.7rem 1rem; font-size:0.88rem;">Applies any pending database migrations.</td>
+            </tr>
+            <tr>
+              <td style="font-family:'Courier New',monospace; font-size:0.85rem; padding:0.7rem 1rem;">seed_demo_users</td>
+              <td style="padding:0.7rem 1rem; font-size:0.88rem;">Seeds demo users, departments, cycles, and goal sheets for testing.</td>
+            </tr>
+            <tr>
+              <td style="font-family:'Courier New',monospace; font-size:0.85rem; padding:0.7rem 1rem;">check</td>
+              <td style="padding:0.7rem 1rem; font-size:0.88rem;">Runs Django system checks to verify configuration health.</td>
+            </tr>
+            <tr>
+              <td style="font-family:'Courier New',monospace; font-size:0.85rem; padding:0.7rem 1rem;">showmigrations</td>
+              <td style="padding:0.7rem 1rem; font-size:0.88rem;">Lists all migrations and their applied status.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
 </div>
+
+{% block extra_js %}
+<script>
+const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+function appendLine(text, cls) {
+  const screen = document.getElementById('terminal-output');
+  if (!screen) return;
+  const span = document.createElement('span');
+  if (cls) span.className = cls;
+  span.textContent = '\n' + text;
+  screen.appendChild(span);
+  screen.scrollTop = screen.scrollHeight;
+}
+
+function clearTerminal() {
+  const screen = document.getElementById('terminal-output');
+  if (!screen) return;
+  screen.innerHTML = '<span class="line-info">Terminal cleared.</span>\n<span class="line-prompt">$</span> _';
+}
+
+function runCommand(cmd, btn) {
+  if (btn.classList.contains('running')) return;
+
+  document.querySelectorAll('.cmd-btn').forEach(b => b.classList.add('running'));
+  const spinner = document.getElementById('spin-' + cmd);
+  if (spinner) spinner.style.display = 'inline-block';
+
+  const screen = document.getElementById('terminal-output');
+  const lastChild = screen.lastChild;
+  if (lastChild && lastChild.textContent && lastChild.textContent.includes('_')) {
+    lastChild.remove();
+  }
+
+  appendLine('$ python manage.py ' + cmd, 'line-prompt');
+  appendLine('Running...', 'line-info');
+
+  fetch('{% url "accounts:profile" %}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'X-CSRFToken': csrfToken,
+    },
+    body: 'action=run_command&command=' + encodeURIComponent(cmd),
+  })
+  .then(r => r.json())
+  .then(data => {
+    const lines = (data.output || '').split('\n');
+    lines.forEach(line => {
+      if (line.trim()) appendLine(line, data.success ? 'line-ok' : 'line-err');
+    });
+    appendLine(data.success ? '✓ Done.' : '✗ Command failed.', data.success ? 'line-ok' : 'line-err');
+  })
+  .catch(err => {
+    appendLine('Network error: ' + err, 'line-err');
+  })
+  .finally(() => {
+    document.querySelectorAll('.cmd-btn').forEach(b => b.classList.remove('running'));
+    if (spinner) spinner.style.display = 'none';
+    appendLine('$ ', 'line-prompt');
+  });
+}
+</script>
+{% endblock %}
 {% endblock %}
