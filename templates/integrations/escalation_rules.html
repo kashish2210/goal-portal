@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Escalation Rules — GoalTrack{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Escalation Rules</h1>
+    <p class="page-subtitle">Configure rule-based escalation triggers and notification chains.</p>
+  </div>
+  <a href="{% url 'integrations:escalation_log' %}" class="btn btn-secondary">View Escalation Log</a>
+</div>
+
+<!-- Create Rule Form -->
+<div class="card mb-4">
+  <div class="card-header"><h2 class="card-title">Add New Rule</h2></div>
+  <div class="card-body">
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+        <div class="form-group">
+          <label class="form-label" for="name">Rule Name</label>
+          <input class="form-control" id="name" name="name" required placeholder="e.g. Late Submission Alert">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="trigger">Trigger</label>
+          <select class="form-control" id="trigger" name="trigger" required>
+            {% for val, label in trigger_choices %}
+            <option value="{{ val }}">{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="days_threshold">Days Threshold</label>
+          <input class="form-control" type="number" id="days_threshold" name="days_threshold" value="7" min="1" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="notify_employee_after">Notify Employee After (days)</label>
+          <input class="form-control" type="number" id="notify_employee_after" name="notify_employee_after" value="0" min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="notify_manager_after">Then Manager After (days)</label>
+          <input class="form-control" type="number" id="notify_manager_after" name="notify_manager_after" value="2" min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="notify_hr_after">Then HR After (days)</label>
+          <input class="form-control" type="number" id="notify_hr_after" name="notify_hr_after" value="5" min="0">
+        </div>
+      </div>
+      <div class="mt-3">
+        <button type="submit" class="btn btn-primary">Create Rule</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Rules Table -->
+<div class="card">
+  <div class="card-header"><h2 class="card-title">Active Rules</h2></div>
+  <div class="card-body p-0">
+    {% if rules %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Trigger</th>
+          <th>Threshold</th>
+          <th>Chain (Emp → Mgr → HR)</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for rule in rules %}
+        <tr>
+          <td>{{ rule.name }}</td>
+          <td><span class="badge badge-info">{{ rule.get_trigger_display }}</span></td>
+          <td>{{ rule.days_threshold }} days</td>
+          <td>+{{ rule.notify_employee_after }}d → +{{ rule.notify_manager_after }}d → +{{ rule.notify_hr_after }}d</td>
+          <td>
+            {% if rule.is_active %}
+            <span class="badge badge-success">Active</span>
+            {% else %}
+            <span class="badge badge-neutral">Inactive</span>
+            {% endif %}
+          </td>
+          <td>
+            <form method="post" action="{% url 'integrations:escalation_toggle' rule.pk %}" style="display:inline;">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm {% if rule.is_active %}btn-warning{% else %}btn-success{% endif %}">
+                {% if rule.is_active %}Deactivate{% else %}Activate{% endif %}
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state p-4">No escalation rules configured yet.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

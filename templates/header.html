@@ -73,6 +73,10 @@
           <li><a href="{% url 'reports:achievement' %}">Achievement Report</a></li>
           <li><a href="{% url 'reports:completion' %}">Completion Dashboard</a></li>
           <li><a href="{% url 'portal:audit_log' %}">Audit Log</a></li>
+          <li class="nav-drop-divider"></li>
+          <li><span class="nav-drop-label">Escalations</span></li>
+          <li><a href="{% url 'integrations:escalation_rules' %}">Escalation Rules</a></li>
+          <li><a href="{% url 'integrations:escalation_log' %}">Escalation Log</a></li>
         </ul>
       </li>
       {% endif %}

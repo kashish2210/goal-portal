@@ -44,7 +44,30 @@ INSTALLED_APPS = [
     'portal',
     'manager',
     'accounts',
+    'integrations',
 ]
+
+# ── Email (5.2) ───────────────────────────────────────────────────────────────
+# Override in .env / production settings
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # swap to smtp in prod
+DEFAULT_FROM_EMAIL = 'goaltrack@yourorg.com'
+
+# ── Microsoft Teams webhook (5.2) ─────────────────────────────────────────────
+# TEAMS_WEBHOOK_URL = 'https://outlook.office.com/webhook/...'
+
+# ── Site base URL for deep links (5.2 / 5.3) ─────────────────────────────────
+# SITE_BASE_URL = 'https://your-domain.com'
+
+# ── Azure AD / Entra ID SSO (5.1) ────────────────────────────────────────────
+# AZURE_AD_CLIENT_ID     = '<app-client-id>'
+# AZURE_AD_CLIENT_SECRET = '<client-secret>'
+# AZURE_AD_TENANT_ID     = '<tenant-id>'
+# AZURE_AD_REDIRECT_URI  = 'https://your-domain.com/integrations/azure/callback/'
+# AZURE_AD_ROLE_MAP = {
+#     '<admin-group-object-id>':    'admin',
+#     '<manager-group-object-id>':  'manager',
+#     '<employee-group-object-id>': 'employee',
+# }
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

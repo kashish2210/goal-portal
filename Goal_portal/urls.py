@@ -40,4 +40,7 @@ urlpatterns = [
 
     # Dashboard (role-based redirect lives here)
     path('', include('dashboards.urls', namespace='dashboards')),
+
+    # Bonus features: Azure SSO, Teams/Email notifications, Escalations
+    path('integrations/', include('integrations.urls', namespace='integrations')),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
