@@ -60,7 +60,7 @@ graph TD
 
 1. **Clone & Setup Environment:**
    ```bash
-   git clone [<repo-url>](http://github.com/kashish2210/goal-portal)
+   git clone http://github.com/kashish2210/goal-portal
    cd goal-portal
    python -m venv venv
    source venv/Scripts/activate  # Windows
