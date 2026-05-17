@@ -6,9 +6,10 @@ from django.utils import timezone
 from django.contrib.auth import get_user_model
 import csv, uuid
 from django.http import HttpResponse
-from django.db.models import Q
+from django.db.models import Q, Count
+import json
 
-from goals.models import GoalSheet, GoalCycle, AuditLog, SharedGoalTemplate, ThrustArea, Department, Goal
+from goals.models import GoalSheet, GoalCycle, AuditLog, SharedGoalTemplate, ThrustArea, Department, Goal, ManagerCheckIn
 
 User = get_user_model()
 
@@ -39,6 +40,57 @@ class AdminDashboardView(AdminRequiredMixin, View):
             'active_cycle': active_cycle,
             'recent_logs': recent_logs,
         })
+
+
+class AnalyticsView(AdminRequiredMixin, View):
+    def get(self, request):
+        active_cycle = GoalCycle.objects.filter(is_active=True).first()
+        cycle_id = request.GET.get('cycle', active_cycle.pk if active_cycle else None)
+        
+        context = {
+            'cycles': GoalCycle.objects.all().order_by('-start_date'),
+            'selected_cycle_id': int(cycle_id) if cycle_id else None
+        }
+
+        qs_sheets = GoalSheet.objects.all()
+        qs_goals = Goal.objects.all()
+        qs_checkins = ManagerCheckIn.objects.all()
+
+        if cycle_id:
+            qs_sheets = qs_sheets.filter(cycle_id=cycle_id)
+            qs_goals = qs_goals.filter(goal_sheet__cycle_id=cycle_id)
+            qs_checkins = qs_checkins.filter(cycle_id=cycle_id)
+
+        # 1. Goal Distribution by Thrust Area
+        thrust_dist = qs_goals.values('thrust_area__name').annotate(count=Count('id')).order_by('-count')
+        context['thrust_labels'] = json.dumps([item['thrust_area__name'] or 'Uncategorized' for item in thrust_dist])
+        context['thrust_data'] = json.dumps([item['count'] for item in thrust_dist])
+
+        # 2. Sheet Status Breakdown
+        status_dist = qs_sheets.values('status').annotate(count=Count('id'))
+        status_map = dict(GoalSheet.STATUS_CHOICES)
+        context['status_labels'] = json.dumps([str(status_map.get(item['status'], item['status'])) for item in status_dist])
+        context['status_data'] = json.dumps([item['count'] for item in status_dist])
+
+        # 3. Manager Check-in Effectiveness
+        managers = User.objects.filter(role='manager')
+        mgr_labels = []
+        mgr_data = []
+        for mgr in managers:
+            mgr_labels.append(mgr.get_full_name() or mgr.username)
+            total = qs_checkins.filter(manager=mgr).count()
+            completed = qs_checkins.filter(manager=mgr, is_complete=True).count()
+            rate = round((completed / total * 100) if total > 0 else 0)
+            mgr_data.append(rate)
+            
+        context['mgr_labels'] = json.dumps(mgr_labels)
+        context['mgr_data'] = json.dumps(mgr_data)
+
+        # Extra summary stats
+        context['total_sheets_cycle'] = qs_sheets.count()
+        context['total_goals_cycle'] = qs_goals.count()
+
+        return render(request, 'portal/analytics.html', context)
 
 
 # ── Cycle Management ──────────────────────────────────────────────────────────
