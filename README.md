@@ -9,12 +9,14 @@ GoalTrack is a modern, structured, and digital Goal Setting & Tracking Portal bu
 
 ## Key Features
 
+- **Microsoft Entra ID (Azure AD) SSO**: Seamless single sign-on with automatic organization hierarchy sync. Roles and reporting lines are derived directly from Azure AD attributes.
+- **Automated Notifications (Teams & Email)**: Real-time notifications powered by Django Signals. Managers receive MS Teams Adaptive Cards with deep-links when sheets are submitted; employees are notified upon approval/return.
+- **Escalation Engine (Rule-Based)**: Configurable daily cron jobs track overdue submissions and approvals, automatically firing a 3-level escalation chain (Employee → Manager → HR) with an immutable audit log.
+- **Analytics Module**: Visual dashboards rendering goal distribution, sheet statuses, and check-in completion rates using Chart.js.
 - **Role-Based Access Control (RBAC)**: Secure, customized portals for Employees, Managers, and Admins/HR.
 - **Phase-Based Lifecycle**: Strict control over "Goal Setting" vs "Check-in" phases via Admin Goal Cycles.
 - **Automated Validation**: Ensures goal weightages sum to exactly 100% before submission.
 - **Manager Workflows**: Managers can review, adjust weightages, approve, or return goal sheets with remarks.
-- **Impersonation**: Admins can impersonate any user to troubleshoot issues or view the system from their perspective.
-- **Audit Logs**: Complete transparency into who approved or modified a goal sheet and when.
 - **Quarterly Check-ins**: Granular tracking of actuals, statuses (On Track, Completed), and manager comments.
 
 ---
@@ -29,20 +31,42 @@ graph TD
     
     subgraph Django Application
         Gunicorn --> |WSGI| Server[Django Core]
-        Server --> |Auth & Impersonation| Auth[Accounts App]
+        Server --> |Auth & SSO| Auth[Accounts App]
         Server --> |Lifecycle & Check-ins| Goals[Goals App]
-        Server --> |RBAC Views| Dashboards[Portal Dashboards]
+        Server --> |RBAC & Analytics| Dashboards[Portal Dashboards]
+        Server --> |Escalations & Webhooks| Integrations[Integrations App]
+        
+        %% Internal Signal interactions
+        Goals -.-> |Signals: post_save| Integrations
     end
     
+    subgraph External Services
+        AzureAD[Microsoft Entra ID]
+        Teams[Microsoft Teams]
+        EmailServer[SMTP Server]
+    end
+    
+    subgraph Background Jobs
+        Cron[Daily Cron Job] -.-> |run_escalations| Integrations
+    end
+    
+    %% DB Connections
     Goals --> |Read/Write| Postgres[(PostgreSQL DB)]
     Auth --> |Read/Write| Postgres
     Dashboards --> |Read| Postgres
+    Integrations --> |Log Escalations| Postgres
+    
+    %% External API Connections 
+    Integrations <--> |OAuth2 / Graph API| AzureAD
+    Integrations --> |Adaptive Cards| Teams
+    Integrations --> |Email Alerts| EmailServer
+    Auth <--> |Delegated Login| AzureAD
     
     %% Role Interactions
     Employee[Employee] -.-> |Create & Update| Goals
     Manager[Manager] -.-> |Review & Approve| Goals
-    AdminHR[Admin / HR] -.-> |Manage Cycles| Goals
-    AdminHR -.-> |Impersonate| Auth
+    AdminHR[Admin / HR] -.-> |Configure Rules| Integrations
+    AdminHR -.-> |Manage Cycles| Goals
 ```
 
 ---
