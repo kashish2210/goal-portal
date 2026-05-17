@@ -30,11 +30,11 @@
         </div>
         <div class="form-group">
           <label for="start_date">Start Date</label>
-          <input type="date" name="start_date" id="start_date" class="form-control" value="{{ cycle.start_date|date:'Y-m-d'|default:'' }}" required>
+        <input type="date" name="start_date" id="start_date" class="form-control" value="{{ start_date_val|default:post.start_date|default:'' }}" required>
         </div>
         <div class="form-group">
           <label for="end_date">End Date</label>
-          <input type="date" name="end_date" id="end_date" class="form-control" value="{{ cycle.end_date|date:'Y-m-d'|default:'' }}" required>
+        <input type="date" name="end_date" id="end_date" class="form-control" value="{{ end_date_val|default:post.end_date|default:'' }}" required>
         </div>
         <div class="form-group" style="display: flex; align-items: center; padding-top: 1.5rem;">
           <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">

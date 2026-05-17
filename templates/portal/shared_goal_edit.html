@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Shared Goal | GoalTrack{% endblock %}
+{% block content %}
+<div class="page-container">
+  <div class="page-header">
+    <h1>Shared Goal Detail</h1>
+    <p class="page-subtitle">{{ template.title }}</p>
+  </div>
+  <div class="create-trip-form-card">
+    <table class="table-sketch">
+      <tbody>
+        <tr><th>Title</th><td>{{ template.title }}</td></tr>
+        <tr><th>Department</th><td>{{ template.department.name }}</td></tr>
+        <tr><th>Cycle</th><td>{{ template.cycle.name }}</td></tr>
+        <tr><th>Thrust Area</th><td>{{ template.thrust_area.name }}</td></tr>
+        <tr><th>UoM</th><td>{{ template.get_uom_display }}</td></tr>
+        <tr><th>Target</th><td>{{ template.target|default:template.target_date|default:"Zero" }}</td></tr>
+        <tr><th>Pushed By</th><td>{{ template.pushed_by.get_full_name|default:template.pushed_by.username }}</td></tr>
+        <tr><th>Recipients</th><td>{{ template.derived_goals.count }} employee(s)</td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top: 1.5rem;">
+      <a href="{% url 'portal:shared_goal_list' %}" class="btn btn-ghost">← Back to Shared Goals</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

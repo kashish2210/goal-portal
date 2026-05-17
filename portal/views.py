@@ -129,7 +129,12 @@ class CycleCreateView(AdminRequiredMixin, View):
 class CycleEditView(AdminRequiredMixin, View):
     def get(self, request, pk):
         cycle = get_object_or_404(GoalCycle, pk=pk)
-        return render(request, 'portal/cycle_form.html', {'action': 'Edit', 'cycle': cycle})
+        return render(request, 'portal/cycle_form.html', {
+            'action': 'Edit',
+            'cycle': cycle,
+            'start_date_val': cycle.start_date.strftime('%Y-%m-%d'),
+            'end_date_val': cycle.end_date.strftime('%Y-%m-%d'),
+        })
 
     def post(self, request, pk):
         cycle = get_object_or_404(GoalCycle, pk=pk)
