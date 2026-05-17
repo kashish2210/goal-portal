@@ -432,13 +432,16 @@ class ImpersonateStartView(AdminRequiredMixin, View):
             messages.error(request, 'You cannot impersonate yourself.')
             return redirect('portal:impersonate_list')
 
-        # Store real admin id, then switch the session user
-        request.session['impersonating'] = True
-        request.session['real_user_id'] = request.user.pk
-        request.session['real_user_name'] = request.user.username
+        admin_user_id = request.user.pk
+        admin_username = request.user.username
 
         from django.contrib.auth import login
         login(request, target, backend='django.contrib.auth.backends.ModelBackend')
+
+        # Set session variables AFTER login() because login flushes the session
+        request.session['impersonating'] = True
+        request.session['real_user_id'] = admin_user_id
+        request.session['real_user_name'] = admin_username
 
         messages.warning(request,
             f'You are now viewing the portal as "{target.username}" ({target.get_role_display()}). '

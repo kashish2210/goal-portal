@@ -4,13 +4,13 @@
 {# ── Impersonate sticky banner ── #}
 {% if request.session.impersonating %}
 <div class="impersonate-bar">
-  <span>
-    ⚠&nbsp; You are viewing as
+  <span style="display: flex; align-items: center; gap: 6px;">
+    You are viewing as
     <strong>{{ user.get_full_name|default:user.username }}</strong>
     ({{ user.get_role_display }}) &mdash; impersonated by
     <em>{{ request.session.real_user_name }}</em>
   </span>
-  <a href="{% url 'portal:impersonate_stop' %}">&#10005; End Impersonation</a>
+  <a href="{% url 'portal:impersonate_stop' %}">&#10005; Stop Impersonating</a>
 </div>
 {% endif %}
 
@@ -111,7 +111,7 @@
         <li><a href="{% url 'accounts:change_password' %}">Change Password</a></li>
         {% if request.session.impersonating %}
         <li class="nav-drop-divider"></li>
-        <li><a href="{% url 'portal:impersonate_stop' %}" style="color:var(--warning);font-weight:600;">&#10005; End Impersonation</a></li>
+        <li><a href="{% url 'portal:impersonate_stop' %}" style="color:var(--warning);font-weight:600;">&#10005; Stop Impersonating</a></li>
         {% elif user.is_admin %}
         <li class="nav-drop-divider"></li>
         <li><span class="nav-drop-label">Admin</span></li>
